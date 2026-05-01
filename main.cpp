@@ -10,7 +10,7 @@ auto TITLE = "Chess";
 
 static bool turn = PIECE_WHITE;
 
-void checkDropPosition(std::vector<Piece> &pieceList, Piece *&currentPiece, Board &board) {
+void checkDropPosition(Piece *&currentPiece, Board &board) {
     if (currentPiece == nullptr) return;
     bool foundValidMove = false;
     for (auto &[notation, square]: board.squares) {
@@ -39,9 +39,7 @@ void checkDropPosition(std::vector<Piece> &pieceList, Piece *&currentPiece, Boar
             std::cout << notation + " valid \n";
             if (!currentPiece->hasMoved) currentPiece->hasMoved = true;
             turn = !turn;
-            for (auto &p: pieceList) {
-                p.calculateLegalMoves(pieceList, board);
-            }
+            board.calculateAllLegalMoves();
             foundValidMove = true;
             break;
         }
@@ -58,81 +56,83 @@ int main() {
 
     const Texture2D piecesTexture = LoadTexture("../Chess_Pieces_Sprite.png");
 
-    std::vector<Piece> pieceList;
     Board board;
-    pieceList.reserve(32);
+    std::vector<Piece>* pieceList = &board.pieceList;
+    pieceList->reserve(32);
     {
         // White Pieces
-        pieceList.emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["A2"], piecesTexture);
-        board.squares["A2"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["B2"], piecesTexture);
-        board.squares["B2"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["C2"], piecesTexture);
-        board.squares["C2"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["D2"], piecesTexture);
-        board.squares["D2"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["E2"], piecesTexture);
-        board.squares["E2"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["F2"], piecesTexture);
-        board.squares["F2"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["G2"], piecesTexture);
-        board.squares["G2"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["H2"], piecesTexture);
-        board.squares["H2"].piece = &pieceList.back();
-        pieceList.emplace_back("rook", ROOK, PIECE_WHITE, board.squares["A1"], piecesTexture);
-        board.squares["A1"].piece = &pieceList.back();
-        pieceList.emplace_back("knight", KNIGHT, PIECE_WHITE, board.squares["B1"], piecesTexture);
-        board.squares["B1"].piece = &pieceList.back();
-        pieceList.emplace_back("bishop", BISHOP, PIECE_WHITE, board.squares["C3"], piecesTexture);
-        board.squares["C3"].piece = &pieceList.back();
-        pieceList.emplace_back("queen", QUEEN, PIECE_WHITE, board.squares["D1"], piecesTexture);
-        board.squares["D1"].piece = &pieceList.back();
-        pieceList.emplace_back("king", KING, PIECE_WHITE, board.squares["E1"], piecesTexture);
-        board.squares["E1"].piece = &pieceList.back();
-        pieceList.emplace_back("bishop", BISHOP, PIECE_WHITE, board.squares["F1"], piecesTexture);
-        board.squares["F1"].piece = &pieceList.back();
-        pieceList.emplace_back("knight", KNIGHT, PIECE_WHITE, board.squares["G1"], piecesTexture);
-        board.squares["G1"].piece = &pieceList.back();
-        pieceList.emplace_back("rook", ROOK, PIECE_WHITE, board.squares["H1"], piecesTexture);
-        board.squares["H1"].piece = &pieceList.back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["A2"], piecesTexture);
+        board.squares["A2"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["B2"], piecesTexture);
+        board.squares["B2"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["C2"], piecesTexture);
+        board.squares["C2"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["D2"], piecesTexture);
+        board.squares["D2"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["E2"], piecesTexture);
+        board.squares["E2"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["F2"], piecesTexture);
+        board.squares["F2"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["G2"], piecesTexture);
+        board.squares["G2"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_WHITE, board.squares["H2"], piecesTexture);
+        board.squares["H2"].piece = &pieceList->back();
+        pieceList->emplace_back("rook", ROOK, PIECE_WHITE, board.squares["A1"], piecesTexture);
+        board.squares["A1"].piece = &pieceList->back();
+        pieceList->emplace_back("knight", KNIGHT, PIECE_WHITE, board.squares["B1"], piecesTexture);
+        board.squares["B1"].piece = &pieceList->back();
+        pieceList->emplace_back("bishop", BISHOP, PIECE_WHITE, board.squares["C1"], piecesTexture);
+        board.squares["C1"].piece = &pieceList->back();
+        pieceList->emplace_back("queen", QUEEN, PIECE_WHITE, board.squares["D1"], piecesTexture);
+        board.squares["D1"].piece = &pieceList->back();
+        pieceList->emplace_back("king", KING, PIECE_WHITE, board.squares["E1"], piecesTexture);
+        board.squares["E1"].piece = &pieceList->back();
+        board.whiteKing = &pieceList->back();
+        pieceList->emplace_back("bishop", BISHOP, PIECE_WHITE, board.squares["F1"], piecesTexture);
+        board.squares["F1"].piece = &pieceList->back();
+        pieceList->emplace_back("knight", KNIGHT, PIECE_WHITE, board.squares["G1"], piecesTexture);
+        board.squares["G1"].piece = &pieceList->back();
+        pieceList->emplace_back("rook", ROOK, PIECE_WHITE, board.squares["H1"], piecesTexture);
+        board.squares["H1"].piece = &pieceList->back();
         // Black Pieces
-        pieceList.emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["A7"], piecesTexture);
-        board.squares["A7"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["B7"], piecesTexture);
-        board.squares["B7"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["C7"], piecesTexture);
-        board.squares["C7"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["D7"], piecesTexture);
-        board.squares["D7"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["E7"], piecesTexture);
-        board.squares["E7"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["F7"], piecesTexture);
-        board.squares["F7"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["G7"], piecesTexture);
-        board.squares["G7"].piece = &pieceList.back();
-        pieceList.emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["H7"], piecesTexture);
-        board.squares["H7"].piece = &pieceList.back();
-        pieceList.emplace_back("rook", ROOK, PIECE_BLACK, board.squares["A8"], piecesTexture);
-        board.squares["A8"].piece = &pieceList.back();
-        pieceList.emplace_back("knight", KNIGHT, PIECE_BLACK, board.squares["B8"], piecesTexture);
-        board.squares["B8"].piece = &pieceList.back();
-        pieceList.emplace_back("bishop", BISHOP, PIECE_BLACK, board.squares["C8"], piecesTexture);
-        board.squares["C8"].piece = &pieceList.back();
-        pieceList.emplace_back("queen", QUEEN, PIECE_BLACK, board.squares["D8"], piecesTexture);
-        board.squares["D8"].piece = &pieceList.back();
-        pieceList.emplace_back("king", KING, PIECE_BLACK, board.squares["E8"], piecesTexture);
-        board.squares["E8"].piece = &pieceList.back();
-        pieceList.emplace_back("bishop", BISHOP, PIECE_BLACK, board.squares["F8"], piecesTexture);
-        board.squares["F8"].piece = &pieceList.back();
-        pieceList.emplace_back("knight", KNIGHT, PIECE_BLACK, board.squares["G8"], piecesTexture);
-        board.squares["G8"].piece = &pieceList.back();
-        pieceList.emplace_back("rook", ROOK, PIECE_BLACK, board.squares["H8"], piecesTexture);
-        board.squares["H8"].piece = &pieceList.back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["A7"], piecesTexture);
+        board.squares["A7"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["B7"], piecesTexture);
+        board.squares["B7"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["C7"], piecesTexture);
+        board.squares["C7"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["D7"], piecesTexture);
+        board.squares["D7"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["E7"], piecesTexture);
+        board.squares["E7"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["F7"], piecesTexture);
+        board.squares["F7"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["G7"], piecesTexture);
+        board.squares["G7"].piece = &pieceList->back();
+        pieceList->emplace_back("pawn", PAWN, PIECE_BLACK, board.squares["H7"], piecesTexture);
+        board.squares["H7"].piece = &pieceList->back();
+        pieceList->emplace_back("rook", ROOK, PIECE_BLACK, board.squares["A8"], piecesTexture);
+        board.squares["A8"].piece = &pieceList->back();
+        pieceList->emplace_back("knight", KNIGHT, PIECE_BLACK, board.squares["B8"], piecesTexture);
+        board.squares["B8"].piece = &pieceList->back();
+        pieceList->emplace_back("bishop", BISHOP, PIECE_BLACK, board.squares["C8"], piecesTexture);
+        board.squares["C8"].piece = &pieceList->back();
+        pieceList->emplace_back("queen", QUEEN, PIECE_BLACK, board.squares["D8"], piecesTexture);
+        board.squares["D8"].piece = &pieceList->back();
+        pieceList->emplace_back("king", KING, PIECE_BLACK, board.squares["E8"], piecesTexture);
+        board.squares["E8"].piece = &pieceList->back();
+        board.blackKing = &pieceList->back();
+        pieceList->emplace_back("bishop", BISHOP, PIECE_BLACK, board.squares["F8"], piecesTexture);
+        board.squares["F8"].piece = &pieceList->back();
+        pieceList->emplace_back("knight", KNIGHT, PIECE_BLACK, board.squares["G8"], piecesTexture);
+        board.squares["G8"].piece = &pieceList->back();
+        pieceList->emplace_back("rook", ROOK, PIECE_BLACK, board.squares["H8"], piecesTexture);
+        board.squares["H8"].piece = &pieceList->back();
     }
 
     Piece *currentPiece = nullptr;
-    for (auto &p: pieceList) {
-        p.calculateLegalMoves(pieceList,board);
+    for (auto &p: *pieceList) {
+        p.calculateLegalMoves(*pieceList, &board);
     }
     // board.pieceList = &pieceList;
 
@@ -144,7 +144,7 @@ int main() {
         const Vector2 mouse = GetMousePosition();
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            for (auto &p: pieceList) {
+            for (auto &p: *pieceList) {
                 if (p.taken) continue;
                 if (turn != p.colour) continue;
                 if (CheckCollisionPointRec(mouse, p.boundingBox)) {
@@ -156,7 +156,7 @@ int main() {
             }
         }
 
-        for (auto &p: pieceList) {
+        for (auto &p: *pieceList) {
             if (p.isCurrentlyHeld) {
                 if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                     p.setCurrentPos({mouse.x - p.boundingBox.width / 2, mouse.y - p.boundingBox.height / 2});
@@ -169,7 +169,7 @@ int main() {
         }
 
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            checkDropPosition(pieceList, currentPiece, board);
+            checkDropPosition(currentPiece, board);
         }
         if (currentPiece != nullptr) {
             currentPiece->Draw(piecesTexture);

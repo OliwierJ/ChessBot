@@ -31,7 +31,7 @@ public:
 
     Piece(const std::string &type, int pieceSprite, int pieceColour, BoardSquare &square, const Texture2D &texture);
 
-    void calculateLegalMoves(const std::vector<Piece>& pieceList, Board& board);
+    void calculateLegalMoves(const std::vector<Piece> &pieceList, Board *board);
 
     bool isLegalMove(const std::string& move);
 
@@ -42,7 +42,9 @@ public:
 
     void setCurrentPos(Vector2 pos);
 
-    bool notPawnOrKing() const;
+    [[nodiscard]]
+     bool notPawnOrKing() const;
+
 private:
     const int UP = 1;
     const int DOWN = -1;

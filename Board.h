@@ -19,6 +19,9 @@ class Board {
 public:
     std::map<std::string, BoardSquare> squares;
     std::vector<std::string> possibleMoves;
+    std::vector<Piece> pieceList;
+    Piece* whiteKing{};
+    Piece* blackKing{};
     // std::vector<Piece>* pieceList;
 
     // Board constructor. Initialises the board squares
@@ -33,6 +36,9 @@ public:
     // Checks if the given move is on the board
     bool isPossibleMove(const std::string& move);
 
+    void calculateAllLegalMoves();
+
+    void addPieceToBoard(const std::string &type, int sprite, int colour, const std::string &square, const Texture2D &texture);
     // Gets all the attacked squares for a colour
     static std::vector<std::string> attackedSquaresOfColor(const std::vector<Piece>& pieceList, int colour);
 };

@@ -4,15 +4,15 @@
 #include "Piece.h"
 
 #pragma region private helpers
-std::vector<std::string> calculate_attacking_row(Board &board, const std::string &current, const Piece *piece,
+std::vector<std::string> calculate_attacking_row(Board* board, const std::string &current, const Piece *piece,
                                                  const int direction) {
     std::vector<std::string> row;
     std::string nextSquare = current;
     const char bound = direction == 1 ? 'H' : 'A';
     while (nextSquare[0] != bound) {
         nextSquare[0] = static_cast<char>(nextSquare[0] + direction);
-        if (board.squares[nextSquare].piece) {
-            if (board.squares[nextSquare].piece->type == "king" && board.squares[nextSquare].piece->colour != piece->
+        if (board->squares[nextSquare].piece) {
+            if (board->squares[nextSquare].piece->type == "king" && board->squares[nextSquare].piece->colour != piece->
                 colour) {
                 row.push_back(nextSquare);
                 continue;
@@ -25,15 +25,15 @@ std::vector<std::string> calculate_attacking_row(Board &board, const std::string
     return row;
 }
 
-std::vector<std::string> calculate_attacking_column(Board &board, const std::string &current, const Piece *piece,
+std::vector<std::string> calculate_attacking_column(Board* board, const std::string &current, const Piece *piece,
                                                     const int direction) {
     std::vector<std::string> row;
     std::string nextSquare = current;
     const char bound = direction == 1 ? '8' : '1';
     while (nextSquare[1] != bound) {
         nextSquare[1] = static_cast<char>(nextSquare[1] + direction);
-        if (board.squares[nextSquare].piece) {
-            if (board.squares[nextSquare].piece->type == "king" && board.squares[nextSquare].piece->colour != piece->
+        if (board->squares[nextSquare].piece) {
+            if (board->squares[nextSquare].piece->type == "king" && board->squares[nextSquare].piece->colour != piece->
                 colour) {
                 row.push_back(nextSquare);
                 continue;
@@ -46,7 +46,7 @@ std::vector<std::string> calculate_attacking_column(Board &board, const std::str
     return row;
 }
 
-std::vector<std::string> calculate_attacking_diagonal(Board &board, const std::string &current, const Piece *piece,
+std::vector<std::string> calculate_attacking_diagonal(Board* board, const std::string &current, const Piece *piece,
                                                       const int leftOrRight, const int upOrDown) {
     std::vector<std::string> diagonalMoves;
     std::string nextSquare = current;
@@ -56,8 +56,8 @@ std::vector<std::string> calculate_attacking_diagonal(Board &board, const std::s
     while (nextSquare[0] != rowBound && nextSquare[1] != colBound) {
         nextSquare[0] = static_cast<char>(nextSquare[0] + leftOrRight);
         nextSquare[1] = static_cast<char>(nextSquare[1] + upOrDown);
-        if (board.squares[nextSquare].piece) {
-            if (board.squares[nextSquare].piece->type == "king" && board.squares[nextSquare].piece->colour != piece->
+        if (board->squares[nextSquare].piece) {
+            if (board->squares[nextSquare].piece->type == "king" && board->squares[nextSquare].piece->colour != piece->
                 colour) {
                 diagonalMoves.push_back(nextSquare);
                 continue;
@@ -84,7 +84,7 @@ Piece::Piece(const std::string &type, const int pieceSprite, const int pieceColo
     this->square = &square;
 }
 
-void Piece::calculateLegalMoves(const std::vector<Piece> &pieceList, Board &board) {
+void Piece::calculateLegalMoves(const std::vector<Piece> &pieceList, Board* board) {
     legalMoves.clear();
     attackingSquares.clear();
     const std::string current = square->name;
@@ -96,23 +96,23 @@ void Piece::calculateLegalMoves(const std::vector<Piece> &pieceList, Board &boar
         std::string leftTake = {static_cast<char>(current[0] - 1), upOne[1]};
         std::string rightTake = {static_cast<char>(current[0] + 1), upOne[1]};
 
-        if (board.isPossibleMove(leftTake)) {
+        if (board->isPossibleMove(leftTake)) {
             attackingSquares.push_back(leftTake);
         }
-        if (board.isPossibleMove(rightTake)) {
+        if (board->isPossibleMove(rightTake)) {
             attackingSquares.push_back(rightTake);
         }
-        if (board.isPossibleMove(leftTake) && board.squares[leftTake].piece && board.squares[leftTake].piece->colour !=
+        if (board->isPossibleMove(leftTake) && board->squares[leftTake].piece && board->squares[leftTake].piece->colour !=
             colour) {
             legalMoves.push_back(leftTake);
         }
-        if (board.isPossibleMove(rightTake) && board.squares[rightTake].piece && board.squares[rightTake].piece->colour
+        if (board->isPossibleMove(rightTake) && board->squares[rightTake].piece && board->squares[rightTake].piece->colour
             != colour) {
             legalMoves.push_back(rightTake);
         }
-        if (!board.squares[upOne].piece) {
+        if (!board->squares[upOne].piece) {
             legalMoves.push_back(upOne);
-            if (!board.squares[upTwo].piece && !hasMoved)
+            if (!board->squares[upTwo].piece && !hasMoved)
                 legalMoves.push_back(upTwo);
         }
     }
@@ -134,9 +134,9 @@ void Piece::calculateLegalMoves(const std::vector<Piece> &pieceList, Board &boar
         attackingSquares.insert(attackingSquares.end(), legalMoves.begin(), legalMoves.end());
 
         for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
-            if (std::ranges::count(board.possibleMoves, *movesIterator) != 1) {
+            if (std::ranges::count(board->possibleMoves, *movesIterator) != 1) {
                 movesIterator = legalMoves.erase(movesIterator);
-            } else if (board.squares[*movesIterator].piece != nullptr && board.squares[*movesIterator].piece->colour ==
+            } else if (board->squares[*movesIterator].piece != nullptr && board->squares[*movesIterator].piece->colour ==
                        colour) {
                 movesIterator = legalMoves.erase(movesIterator);
             } else {
@@ -209,9 +209,9 @@ void Piece::calculateLegalMoves(const std::vector<Piece> &pieceList, Board &boar
         auto attackedSquares = Board::attackedSquaresOfColor(pieceList, colour);
 
         for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
-            if (std::ranges::count(board.possibleMoves, *movesIterator) != 1) {
+            if (std::ranges::count(board->possibleMoves, *movesIterator) != 1) {
                 movesIterator = legalMoves.erase(movesIterator);
-            } else if (board.squares[*movesIterator].piece != nullptr && board.squares[*movesIterator].piece->colour ==
+            } else if (board->squares[*movesIterator].piece != nullptr && board->squares[*movesIterator].piece->colour ==
                        colour) {
                 movesIterator = legalMoves.erase(movesIterator);
             } else if (std::ranges::count(attackedSquares, *movesIterator) >= 1) {

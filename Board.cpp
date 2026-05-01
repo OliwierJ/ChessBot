@@ -1,4 +1,7 @@
 #include "Board.h"
+
+#include <stdexcept>
+
 #include "Piece.h"
 
 Board::Board() {
@@ -45,6 +48,23 @@ void Board::drawLegalMove(const std::string &notation, const int colour) {
 
 bool Board::isPossibleMove(const std::string &move) {
     return std::ranges::count(possibleMoves, move) == 1;
+}
+
+void Board::calculateAllLegalMoves() {
+    for (auto &p: pieceList) {
+        p.calculateLegalMoves(pieceList, this);
+    }
+    whiteKing->calculateLegalMoves(pieceList, this);
+    blackKing->calculateLegalMoves(pieceList, this);
+
+}
+
+void Board::addPieceToBoard(const std::string& type, const int sprite, const int colour, const std::string &square, const Texture2D& texture) {
+    if (!isPossibleMove(square))
+        throw std::invalid_argument("Cannot add piece to illegal square");
+
+    pieceList.emplace_back(type, sprite, colour, this->squares[square], texture);
+    squares[square].piece = &pieceList.back();
 }
 
 std::vector<std::string> Board::attackedSquaresOfColor(const std::vector<Piece> &pieceList, const int colour) {
