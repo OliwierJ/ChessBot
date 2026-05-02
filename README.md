@@ -4,7 +4,7 @@ ChessBot is a C++23 chess board prototype built with [raylib](https://www.raylib
 
 ## Current Progress
 
-The project is already past the initial rendering stage and now has a working interactive board. The main progress so far is:
+The project now has a fully functional interactive chess board with check detection and audio feedback. Recent updates include:
 
 - A full 8x8 board is generated and drawn with square coordinates.
 - All standard chess pieces are created and placed on the board, with setup still being refined in a few spots.
@@ -13,6 +13,9 @@ The project is already past the initial rendering stage and now has a working in
 - Captures are supported by marking opposing pieces as taken.
 - Legal move hints are displayed for the currently selected piece.
 - Turn switching is implemented between white and black.
+- **Check detection is now implemented** — moves that leave a king in check are rejected and cannot be played.
+- **Sound effects** are triggered for moves, captures, check, and illegal moves.
+- **Refactored board management** — the Board class now manages piece placement and calculates all legal moves centrally.
 
 ## Project Structure
 
@@ -28,15 +31,16 @@ The current prototype can run as a visual chess board and supports the following
 
 1. Pieces are rendered from a sprite sheet.
 2. Moves are validated against the piece-specific move rules currently implemented.
-3. The board rejects obvious invalid drops, such as moving to a square outside the generated move set.
+3. Moves that leave a player's king in check are rejected and trigger an illegal-move sound.
 4. Friendly pieces cannot be captured.
 5. Legal squares are highlighted while a piece is held.
+6. Audio feedback plays for moves, captures, checks, and illegal moves.
 
 ## Known Gaps
 
 The project is still a prototype, so several chess rules and polish items are not implemented yet:
 
-- No check, checkmate, stalemate, or draw detection.
+- No checkmate, stalemate, or draw detection yet.
 - No castling.
 - No en passant.
 - No pawn promotion.
@@ -63,4 +67,9 @@ After building, run the generated executable from the build directory. The progr
 
 ## Next Steps
 
-The most important follow-up work is to turn the current move generator into a complete chess rules engine. Good next milestones are check detection, castling, promotion, and a simple game state system for tracking wins and draws.
+With check detection in place, the next priorities are:
+1. **Checkmate and stalemate detection** to properly end games.
+2. **Castling and en passant** to complete the core rule set.
+3. **Pawn promotion** to allow pawns to convert at the end ranks.
+4. **Move history and game-state UI** for better user feedback and optional undo.
+5. **Basic AI opponent** once the rules engine is stable.
