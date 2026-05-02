@@ -31,7 +31,7 @@ public:
 
     Piece(const std::string &type, int pieceSprite, int pieceColour, BoardSquare &square, const Texture2D &texture);
 
-    void calculateLegalMoves(const std::vector<Piece> &pieceList, Board *board);
+    void calculateLegalMoves(Board *board);
 
     bool isLegalMove(const std::string& move);
 

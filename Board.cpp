@@ -52,25 +52,40 @@ bool Board::isPossibleMove(const std::string &move) {
 
 void Board::calculateAllLegalMoves() {
     for (auto &p: pieceList) {
-        p.calculateLegalMoves(pieceList, this);
+        if (p.taken) continue;
+        p.calculateLegalMoves(this);
     }
-    whiteKing->calculateLegalMoves(pieceList, this);
-    blackKing->calculateLegalMoves(pieceList, this);
+    whiteKing->calculateLegalMoves(this);
+    blackKing->calculateLegalMoves(this);
 
 }
 
 void Board::addPieceToBoard(const std::string& type, const int sprite, const int colour, const std::string &square, const Texture2D& texture) {
     if (!isPossibleMove(square))
-        throw std::invalid_argument("Cannot add piece to illegal square");
+        throw std::invalid_argument(
+            "Cannot add piece to illegal square.\nTried to create piece " +
+            type + " at illegal position " + square
+        );
 
     pieceList.emplace_back(type, sprite, colour, this->squares[square], texture);
     squares[square].piece = &pieceList.back();
 }
 
-std::vector<std::string> Board::attackedSquaresOfColor(const std::vector<Piece> &pieceList, const int colour) {
+bool Board::isColourChecked(const int colour) const {
+    if (colour == 0) return whiteIsChecked;
+    return blackIsChecked;
+}
+
+Piece * Board::getKingByColor(int colour) const {
+    if (colour == 0) return whiteKing;
+    return blackKing;
+}
+
+std::vector<std::string> Board::attackedSquaresOfColor(const int colour) {
     std::vector<std::string> allAttackedSquares;
     for (auto& piece: pieceList) {
         if (!piece.taken && piece.colour != colour && piece.notPawnOrKing()) {
+            piece.calculateLegalMoves(this);
             allAttackedSquares.insert(allAttackedSquares.end(), piece.legalMoves.begin(), piece.legalMoves.end());
         }
         if (!piece.taken && piece.colour != colour && !piece.notPawnOrKing()) {

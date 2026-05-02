@@ -3,6 +3,8 @@
 #include "BoardSquare.h"
 #include "Piece.h"
 
+#include <iostream>
+
 #pragma region private helpers
 std::vector<std::string> calculate_attacking_row(Board* board, const std::string &current, const Piece *piece,
                                                  const int direction) {
@@ -84,7 +86,7 @@ Piece::Piece(const std::string &type, const int pieceSprite, const int pieceColo
     this->square = &square;
 }
 
-void Piece::calculateLegalMoves(const std::vector<Piece> &pieceList, Board* board) {
+void Piece::calculateLegalMoves(Board* board) {
     legalMoves.clear();
     attackingSquares.clear();
     const std::string current = square->name;
@@ -114,6 +116,28 @@ void Piece::calculateLegalMoves(const std::vector<Piece> &pieceList, Board* boar
             legalMoves.push_back(upOne);
             if (!board->squares[upTwo].piece && !hasMoved)
                 legalMoves.push_back(upTwo);
+        }
+
+        for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
+            const auto currentSquare = square;
+            auto possibleMovableSquaresPiece = board->squares[*movesIterator].piece;
+            if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = true;
+            square->piece = nullptr;
+            square = &board->squares[*movesIterator];
+            board->squares[*movesIterator].piece = this;
+
+            auto newAttackedSquares = board->attackedSquaresOfColor(colour);
+            auto king = board->getKingByColor(colour);
+            bool check = std::ranges::count(newAttackedSquares, king->square->name) >= 1;
+            if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = false;
+            square->piece = possibleMovableSquaresPiece;
+            square = currentSquare;
+            square->piece = this;
+            if (check) {
+                movesIterator = legalMoves.erase(movesIterator);
+            } else {
+                ++movesIterator;
+            }
         }
     }
 
@@ -206,7 +230,7 @@ void Piece::calculateLegalMoves(const std::vector<Piece> &pieceList, Board* boar
         };
         attackingSquares.insert(attackingSquares.end(), legalMoves.begin(), legalMoves.end());
 
-        auto attackedSquares = Board::attackedSquaresOfColor(pieceList, colour);
+        auto attackedSquares = board->attackedSquaresOfColor(colour);
 
         for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
             if (std::ranges::count(board->possibleMoves, *movesIterator) != 1) {

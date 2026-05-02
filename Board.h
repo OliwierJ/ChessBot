@@ -22,6 +22,8 @@ public:
     std::vector<Piece> pieceList;
     Piece* whiteKing{};
     Piece* blackKing{};
+    bool whiteIsChecked = false;
+    bool blackIsChecked = false;
     // std::vector<Piece>* pieceList;
 
     // Board constructor. Initialises the board squares
@@ -36,11 +38,18 @@ public:
     // Checks if the given move is on the board
     bool isPossibleMove(const std::string& move);
 
+    // calculates all legal moves for all pieces, followed by both kings
     void calculateAllLegalMoves();
 
+    // Creates a piece and adds it to the board square and piece list
     void addPieceToBoard(const std::string &type, int sprite, int colour, const std::string &square, const Texture2D &texture);
+
+    [[nodiscard]]
+    bool isColourChecked(int colour) const;
+
+    Piece* getKingByColor(int colour) const;
     // Gets all the attacked squares for a colour
-    static std::vector<std::string> attackedSquaresOfColor(const std::vector<Piece>& pieceList, int colour);
+    std::vector<std::string> attackedSquaresOfColor(int colour);
 };
 
 #endif //CHESSBOT_BOARD_H
