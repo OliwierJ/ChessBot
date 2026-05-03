@@ -86,6 +86,36 @@ Piece::Piece(const std::string &type, const int pieceSprite, const int pieceColo
     this->square = &square;
 }
 
+void Piece::remove_moves_leading_to_checks(Board *board) {
+    for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
+        const auto currentSquare = square;
+        const auto possibleMovableSquaresPiece = board->squares[*movesIterator].piece;
+        if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = true;
+        square->piece = nullptr;
+        square = &board->squares[*movesIterator];
+        board->squares[*movesIterator].piece = this;
+
+        auto newAttackedSquares = board->attackedSquaresOfColor(colour);
+        const auto king = board->getKingByColor(colour);
+        bool check = std::ranges::count(newAttackedSquares, king->square->name) >= 1;
+        if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = false;
+        square->piece = possibleMovableSquaresPiece;
+        square = currentSquare;
+        square->piece = this;
+        if (check) {
+            movesIterator = legalMoves.erase(movesIterator);
+        } else {
+            ++movesIterator;
+        }
+    }
+}
+
+void Piece::printLegalMoves() const {
+    for (const auto& move : legalMoves) {
+        std::cout << move << " ";
+    }
+    std::cout << "\n";
+}
 void Piece::calculateLegalMoves(Board* board) {
     legalMoves.clear();
     attackingSquares.clear();
@@ -118,27 +148,6 @@ void Piece::calculateLegalMoves(Board* board) {
                 legalMoves.push_back(upTwo);
         }
 
-        for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
-            const auto currentSquare = square;
-            auto possibleMovableSquaresPiece = board->squares[*movesIterator].piece;
-            if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = true;
-            square->piece = nullptr;
-            square = &board->squares[*movesIterator];
-            board->squares[*movesIterator].piece = this;
-
-            auto newAttackedSquares = board->attackedSquaresOfColor(colour);
-            auto king = board->getKingByColor(colour);
-            bool check = std::ranges::count(newAttackedSquares, king->square->name) >= 1;
-            if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = false;
-            square->piece = possibleMovableSquaresPiece;
-            square = currentSquare;
-            square->piece = this;
-            if (check) {
-                movesIterator = legalMoves.erase(movesIterator);
-            } else {
-                ++movesIterator;
-            }
-        }
     }
 
     if (type == "knight") {
@@ -167,6 +176,7 @@ void Piece::calculateLegalMoves(Board* board) {
                 ++movesIterator;
             }
         }
+
     }
 
     if (type == "rook") {
@@ -179,6 +189,7 @@ void Piece::calculateLegalMoves(Board* board) {
         legalMoves.insert(legalMoves.end(), leftRow.begin(), leftRow.end());
         legalMoves.insert(legalMoves.end(), upCol.begin(), upCol.end());
         legalMoves.insert(legalMoves.end(), downCol.begin(), downCol.end());
+
     }
 
     if (type == "bishop") {
@@ -213,6 +224,7 @@ void Piece::calculateLegalMoves(Board* board) {
         legalMoves.insert(legalMoves.end(), leftRow.begin(), leftRow.end());
         legalMoves.insert(legalMoves.end(), upCol.begin(), upCol.end());
         legalMoves.insert(legalMoves.end(), downCol.begin(), downCol.end());
+
     }
 
     if (type == "king") {

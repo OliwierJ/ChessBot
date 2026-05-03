@@ -31,6 +31,10 @@ public:
 
     Piece(const std::string &type, int pieceSprite, int pieceColour, BoardSquare &square, const Texture2D &texture);
 
+    void remove_moves_leading_to_checks(Board *board);
+
+    void printLegalMoves() const;
+
     void calculateLegalMoves(Board *board);
 
     bool isLegalMove(const std::string& move);

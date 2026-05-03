@@ -26,6 +26,45 @@ void checkDropPosition(Piece *&currentPiece, Board &board) {
                 break;
             }
 
+            if (board.isColourChecked(currentPiece->colour)) {
+                const auto tempSquare = currentPiece->square;
+                const auto tempCurrent = square.piece;
+                currentPiece->square = &square;
+                square.piece = currentPiece;
+                if (tempCurrent != nullptr) tempCurrent->taken = true;
+
+                board.calculateAllLegalMoves();
+                auto newAttackedSquares = board.attackedSquaresOfColor(currentPiece->colour);
+                if (currentPiece->colour == PIECE_WHITE) {
+                    board.whiteIsChecked = std::ranges::count(newAttackedSquares, board.whiteKing->square->name) >= 1;
+                    if (board.whiteIsChecked) {
+                        if (tempCurrent != nullptr) tempCurrent->taken = false;
+                        currentPiece->square = tempSquare;
+                        square.piece = tempCurrent;
+
+                        std::cout << "white still checked " << board.whiteIsChecked << "\n";
+                        PlaySound(illegalMoveSound);
+                        break;
+                    }
+                    std::cout << "white no longer checked " << board.whiteIsChecked << "\n";
+
+                } else {
+                    board.blackIsChecked = std::ranges::count(newAttackedSquares, board.blackKing->square->name) >= 1;
+                    if (board.blackIsChecked) {
+                        if (tempCurrent != nullptr) tempCurrent->taken = false;
+                        currentPiece->square = tempSquare;
+                        square.piece = tempCurrent;
+                        std::cout << "black still checked " << board.blackIsChecked << "\n";
+                        PlaySound(illegalMoveSound);
+                        break;
+                    }
+                    std::cout << "black no longer checked " << board.blackIsChecked << "\n";
+                }
+                if (tempCurrent != nullptr) tempCurrent->taken = false;
+                currentPiece->square = tempSquare;
+                square.piece = tempCurrent;
+            }
+
             if (square.piece && !square.piece->taken) {
                 if (square.piece->colour == currentPiece->colour) {
                     currentPiece->setCurrentPos({currentPiece->lastPosition.x, currentPiece->lastPosition.y});
@@ -36,38 +75,6 @@ void checkDropPosition(Piece *&currentPiece, Board &board) {
                 std::cout << "taken ";
             }
 
-            if (board.isColourChecked(currentPiece->colour)) {
-                const auto tempSquare = currentPiece->square;
-                const auto tempCurrent = square.piece;
-                currentPiece->square = &square;
-                square.piece = currentPiece;
-                board.calculateAllLegalMoves();
-                auto newAttackedSquares = board.attackedSquaresOfColor(currentPiece->colour);
-                if (currentPiece->colour == PIECE_WHITE) {
-                    board.whiteIsChecked = std::ranges::count(newAttackedSquares, board.whiteKing->square->name) >= 1;
-                    if (board.whiteIsChecked) {
-                        currentPiece->square = tempSquare;
-                        square.piece = tempCurrent;
-                        std::cout << "white still checked " << board.whiteIsChecked << "\n";
-                        PlaySound(illegalMoveSound);
-                        break;
-                    }
-                    std::cout << "white no longer checked " << board.whiteIsChecked << "\n";
-
-                } else {
-                    board.blackIsChecked = std::ranges::count(newAttackedSquares, board.blackKing->square->name) >= 1;
-                    if (board.blackIsChecked) {
-                        currentPiece->square = tempSquare;
-                        square.piece = tempCurrent;
-                        std::cout << "black still checked " << board.blackIsChecked << "\n";
-                        PlaySound(illegalMoveSound);
-                        break;
-                    }
-                    std::cout << "black no longer checked " << board.blackIsChecked << "\n";
-                }
-                currentPiece->square = tempSquare;
-                square.piece = tempCurrent;
-            }
             currentPiece->setCurrentPos({square.squareBox.x, square.squareBox.y});
             currentPiece->lastPosition = currentPiece->getCurrentPos();
             currentPiece->square->piece = nullptr;
@@ -75,7 +82,7 @@ void checkDropPosition(Piece *&currentPiece, Board &board) {
             currentPiece->square = &square;
             std::cout << notation + " valid \n";
             if (!currentPiece->hasMoved) currentPiece->hasMoved = true;
-            board.calculateAllLegalMoves();
+            board.calculateAllLegalMovesByColour(!turn);
             if (currentPiece->colour == PIECE_WHITE) {
                 auto temp = board.attackedSquaresOfColor(PIECE_BLACK);
                 board.blackIsChecked = std::ranges::count(temp, board.blackKing->square->name) >= 1;
@@ -85,6 +92,8 @@ void checkDropPosition(Piece *&currentPiece, Board &board) {
                 board.whiteIsChecked = std::ranges::count(temp, board.whiteKing->square->name) >= 1;
                 std::cout << "is white checked? " << board.whiteIsChecked << "\n";
             }
+
+
             if (board.whiteIsChecked || board.blackIsChecked) {
                 PlaySound(checkSound);
             }
@@ -97,7 +106,7 @@ void checkDropPosition(Piece *&currentPiece, Board &board) {
     }
     if (!foundValidMove) {
         currentPiece->setCurrentPos({currentPiece->lastPosition.x, currentPiece->lastPosition.y});
-        board.calculateAllLegalMoves();
+        board.calculateAllLegalMovesByColour(turn);
     } else {
         currentPiece = nullptr;
     }
@@ -124,9 +133,9 @@ int main() {
         board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "C2", piecesTexture);
         board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "D2", piecesTexture);
         board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "E2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "F2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "G2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "H2", piecesTexture);
+        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "F2", piecesTexture);
+        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "G2", piecesTexture);
+        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "H2", piecesTexture);
         board.addPieceToBoard("rook", ROOK, PIECE_WHITE, "A1", piecesTexture);
         board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "B1", piecesTexture);
         board.addPieceToBoard("bishop", BISHOP, PIECE_WHITE, "C1", piecesTexture);
@@ -137,17 +146,17 @@ int main() {
         board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "G1", piecesTexture);
         board.addPieceToBoard("rook", ROOK, PIECE_WHITE, "H1", piecesTexture);
         // Black Pieces
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "A7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "B7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "C7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "D7", piecesTexture);
+        // board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "A7", piecesTexture);
+        // board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "B7", piecesTexture);
+        // board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "C7", piecesTexture);
+        // board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "D7", piecesTexture);
         board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "E7", piecesTexture);
         board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "F7", piecesTexture);
         board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "G7", piecesTexture);
         board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "H7", piecesTexture);
-        board.addPieceToBoard("rook", ROOK, PIECE_BLACK, "A8", piecesTexture);
-        board.addPieceToBoard("knight", KNIGHT, PIECE_BLACK, "B8", piecesTexture);
-        board.addPieceToBoard("bishop", BISHOP, PIECE_BLACK, "C8", piecesTexture);
+        // board.addPieceToBoard("rook", ROOK, PIECE_BLACK, "A8", piecesTexture);
+        // board.addPieceToBoard("knight", KNIGHT, PIECE_BLACK, "B8", piecesTexture);
+        // board.addPieceToBoard("bishop", BISHOP, PIECE_BLACK, "C8", piecesTexture);
         board.addPieceToBoard("queen", QUEEN, PIECE_BLACK, "D8", piecesTexture);
         board.addPieceToBoard("king", KING, PIECE_BLACK, "E8", piecesTexture);
         board.blackKing = &pieceList->back();
@@ -197,9 +206,14 @@ int main() {
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             checkDropPosition(currentPiece, board);
         }
+        // if (currentPiece) {
+        //     std::cout << currentPiece->type << "  " << currentPiece->colour << "  ";
+        //     currentPiece->printLegalMoves();
+        // }
         if (currentPiece != nullptr) {
             currentPiece->Draw(piecesTexture);
-            for (std::string &legalMove: currentPiece->legalMoves) {
+            for (std::string &legalMove : currentPiece->legalMoves) {
+
                 board.drawLegalMove(legalMove, currentPiece->colour);
             }
         }
@@ -214,6 +228,8 @@ int main() {
     UnloadSound(checkSound);
     UnloadSound(moveSound);
     UnloadSound(illegalMoveSound);
+    UnloadSound(captureSound);
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }

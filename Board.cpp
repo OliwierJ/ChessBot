@@ -1,5 +1,6 @@
 #include "Board.h"
 
+#include <iostream>
 #include <stdexcept>
 
 #include "Piece.h"
@@ -54,9 +55,29 @@ void Board::calculateAllLegalMoves() {
     for (auto &p: pieceList) {
         if (p.taken) continue;
         p.calculateLegalMoves(this);
+        p.remove_moves_leading_to_checks(this);
+        std::cout << p.type << "  " << p.colour << "  ";
+        p.printLegalMoves();
     }
+    // for (auto& p : pieceList) {
+    //     std::cout << p.type << "  " << p.colour << "  ";
+    //     p.printLegalMoves();
+    // }
     whiteKing->calculateLegalMoves(this);
     blackKing->calculateLegalMoves(this);
+
+}
+
+void Board::calculateAllLegalMovesByColour(const int colour) {
+    for (auto &p: pieceList) {
+        if (p.taken || p.colour != colour) continue;
+        p.calculateLegalMoves(this);
+        p.remove_moves_leading_to_checks(this);
+        std::cout << p.type << "  " << p.colour << "  ";
+        p.printLegalMoves();
+    }
+    auto king = getKingByColor(colour);
+    king->calculateLegalMoves(this);
 
 }
 
@@ -76,11 +97,21 @@ bool Board::isColourChecked(const int colour) const {
     return blackIsChecked;
 }
 
-Piece * Board::getKingByColor(int colour) const {
+Piece * Board::getKingByColor(const int colour) const {
     if (colour == 0) return whiteKing;
     return blackKing;
 }
 
+size_t Board::GetLegalMoveCount(const int colour) const {
+    size_t count = 0;
+    for (const auto& p : pieceList) {
+        if (p.colour == colour) {
+            count += p.legalMoves.size();
+            count += p.attackingSquares.size();
+        }
+    }
+    return count;
+}
 std::vector<std::string> Board::attackedSquaresOfColor(const int colour) {
     std::vector<std::string> allAttackedSquares;
     for (auto& piece: pieceList) {
@@ -89,6 +120,7 @@ std::vector<std::string> Board::attackedSquaresOfColor(const int colour) {
             allAttackedSquares.insert(allAttackedSquares.end(), piece.legalMoves.begin(), piece.legalMoves.end());
         }
         if (!piece.taken && piece.colour != colour && !piece.notPawnOrKing()) {
+            if (piece.type == "pawn") piece.calculateLegalMoves(this);
             allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(), piece.attackingSquares.end());
         }
     }
