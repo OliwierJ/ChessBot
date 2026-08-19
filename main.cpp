@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <thread>
 #include <vector>
 #include "Board.h"
 #include "GameState.h"
@@ -23,7 +24,7 @@ Sound promoteSound;
 Sound gameEndSound;
 
 
-void play_move_sound(const Board &board, MoveOutcome move_outcome) {
+void play_move_sound(const Board &board, const MoveOutcome move_outcome) {
     if (board.whiteIsChecked || board.blackIsChecked) {
         PlaySound(checkSound);
     } else if (move_outcome.pieceTaken) {
@@ -35,7 +36,8 @@ void play_move_sound(const Board &board, MoveOutcome move_outcome) {
     }
 }
 
-bool finalize_move(Piece *&currentPiece, const Board &board, GameState &state, bool &foundValidMove, const std::string &previousPosition, const BoardSquare &square, const MoveOutcome move_outcome) {
+bool finalize_move(Piece *&currentPiece, const Board &board, GameState &state, const std::string &previousPosition,
+                   const BoardSquare &square, const MoveOutcome move_outcome) {
     const auto legalMoveCount = board.getLegalMoveCount(!turn);
     if (board.isColourChecked(!turn)) {
         if (legalMoveCount == 0) {
@@ -68,9 +70,7 @@ bool finalize_move(Piece *&currentPiece, const Board &board, GameState &state, b
     }
     if (board.isColourChecked(!turn)) move_notation += '+';
     state.move_history.append_move(move_notation);
-    state.move_history.print_history();
 
-    foundValidMove = true;
     turn = !turn;
     return false;
 }
@@ -87,9 +87,9 @@ void check_drop_position(Piece *&currentPiece, Board &board, GameState &state) {
 
             MoveOutcome move_outcome;
             MoveValidator::apply_move(currentPiece, board, square, move_outcome, turn);
-            if (finalize_move(currentPiece, board, state, foundValidMove, previousPosition, square, move_outcome)) return;
+            if (finalize_move(currentPiece, board, state, previousPosition, square, move_outcome)) return;
+            foundValidMove = true;
             play_move_sound(board, move_outcome);
-
             break;
         }
     }
@@ -106,7 +106,7 @@ void DrawEndGameState(const GameState &game, const Board &board, const Texture2D
     for (auto &p: board.pieceList) {
         p.Draw(piecesTexture);
     }
-    DrawRectangle(0, 0, 750, 750, {100, 100, 100, 150});
+    DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, {100, 100, 100, 150});
     if (game.state == CHECKMATE) {
         const std::string text = game.winner == 0 ? "White wins!" : "Black wins!";
         DrawText("Checkmate!", 300, 300, 30, WHITE);
@@ -132,6 +132,7 @@ int main() {
     load_sounds();
     std::cout << std::boolalpha;
     const Texture2D piecesTexture = LoadTexture("../resources/Chess_Pieces_Sprite.png");
+    srand(time(nullptr));
 
     GameState game;
     const MoveHistory move_history;
@@ -186,7 +187,6 @@ int main() {
         // board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "F3", piecesTexture);
         // board.addPieceToBoard("king", KING, PIECE_BLACK, "F6", piecesTexture);
         // board.blackKing = &pieceList->back();
-
     }
 
     Piece *currentPiece = nullptr;
@@ -240,6 +240,9 @@ int main() {
 
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             check_drop_position(currentPiece, board, game);
+            for (auto &p: *pieceList) {
+                p.Draw(piecesTexture);
+            }
         }
 
         // Draw held piece and its legal moves
@@ -250,15 +253,37 @@ int main() {
             currentPiece->Draw(piecesTexture);
         }
 
-        if (botGame && turn == PIECE_BLACK) {
-
-        }
 
         if (!turn)
             DrawText("White's turn", 10, 10, 20, WHITE);
         if (turn)
             DrawText("Black's turn", 10, 10, 20, WHITE);
+
         EndDrawing();
+        if (botGame && turn) {
+            bool found_piece = false;
+            Piece *random_piece = nullptr;
+            std::string move;
+            while (!found_piece) {
+                const int randomPieceIndex = std::rand() % board.pieceList.size();
+                random_piece = &board.pieceList[randomPieceIndex];
+                if (random_piece->taken) continue;
+                if (random_piece->colour != turn) continue;
+                if (random_piece->legalMoves.empty()) continue;
+
+                std::cout << random_piece->type << " " << random_piece->square->name << "\n";
+                const int randomMoveIndex = std::rand() % random_piece->legalMoves.size();
+                move = random_piece->legalMoves[randomMoveIndex];
+                if (!MoveValidator::validate_legal_move(random_piece, board.squares[move], board)) continue;
+                found_piece = true;
+            }
+            _sleep(1000);
+            const std::string previousPosition = random_piece->square->name;
+            MoveOutcome move_outcome;
+            MoveValidator::apply_move(random_piece, board, board.squares[move], move_outcome, turn);
+            finalize_move(random_piece, board, game, previousPosition, board.squares[move], move_outcome);
+            play_move_sound(board, move_outcome);
+        }
     }
 
     UnloadTexture(piecesTexture);

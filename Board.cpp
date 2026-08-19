@@ -56,13 +56,8 @@ void Board::calculateAllLegalMoves() {
         if (p.taken) continue;
         p.calculateLegalMoves(this);
         p.remove_moves_leading_to_checks(this);
-        // std::cout << p.type << "  " << p.colour << "  ";
-        // p.printLegalMoves();
     }
-    // for (auto& p : pieceList) {
-        // std::cout << p.type << "  " << p.colour << "  ";
-        // p.printLegalMoves();
-    // }
+
     whiteKing->calculateLegalMoves(this);
     blackKing->calculateLegalMoves(this);
 
@@ -77,8 +72,6 @@ void Board::calculateAllLegalMovesByColour(const int colour) {
         if (p.taken || p.colour != colour) continue;
         p.calculateLegalMoves(this);
         p.remove_moves_leading_to_checks(this);
-        // std::cout << p.type << "  " << p.colour << "  ";
-        // p.printLegalMoves();
     }
     auto king = getKingByColor(colour);
     king->calculateLegalMoves(this);
