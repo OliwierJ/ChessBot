@@ -18,7 +18,8 @@ void MoveHistory::draw() const {
     for (size_t i = 0; i < movesList.size(); i++) {
         const int move = (i / 2) + 1;
         if (i % 2 == 0) {
-            DrawText(std::to_string(move).c_str(), 800, 100 + text_offset_y, 20, BLACK);
+            auto number_str = std::to_string(move) + ".";
+            DrawText(number_str.c_str(), 790, 100 + text_offset_y, 20, BLACK);
             DrawText(movesList[i].c_str(), 850 + text_offset_x, 100 + text_offset_y, 20, BLACK);
             text_offset_x = 100;
         } else {

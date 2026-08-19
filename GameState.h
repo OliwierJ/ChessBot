@@ -13,7 +13,11 @@ public:
     int state = NORMAL;
     int winner = -1;
     MoveHistory move_history;
-
+    bool pieceTaken = false;
+    bool pawnPromoted = false;
+    bool shortCastled = false;
+    bool longCastled = false;
+    bool illegalMove = false;
     // more states idk
 };
 
