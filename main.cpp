@@ -4,6 +4,7 @@
 #include <vector>
 #include "Board.h"
 #include "GameState.h"
+#include "MoveHistory.h"
 #include "raylib.h"
 #include "Piece.h"
 
@@ -23,7 +24,9 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
     bool foundValidMove = false;
     bool pieceTaken = false;
     bool pawnPromoted = false;
-
+    std::string previousPosition = currentPiece->square->name;
+    bool shortCastled = false;
+    bool longCastled = false;
     for (auto &[notation, square]: board.squares) {
         if (CheckCollisionPointRec(GetMousePosition(), square.squareBox)) {
             if (notation == currentPiece->square->name) break;
@@ -57,22 +60,18 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
                         currentPiece->square = tempSquare;
                         square.piece = tempCurrent;
 
-                        std::cout << "white still checked " << board.whiteIsChecked << "\n";
                         PlaySound(illegalMoveSound);
                         break;
                     }
-                    std::cout << "white no longer checked " << board.whiteIsChecked << "\n";
                 } else {
                     board.blackIsChecked = std::ranges::count(newAttackedSquares, board.blackKing->square->name) >= 1;
                     if (board.blackIsChecked) {
                         if (tempCurrent != nullptr) tempCurrent->taken = false;
                         currentPiece->square = tempSquare;
                         square.piece = tempCurrent;
-                        std::cout << "black still checked " << board.blackIsChecked << "\n";
                         PlaySound(illegalMoveSound);
                         break;
                     }
-                    std::cout << "black no longer checked " << board.blackIsChecked << "\n";
                 }
                 if (tempCurrent != nullptr) tempCurrent->taken = false;
                 currentPiece->square = tempSquare;
@@ -89,7 +88,6 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
                 }
                 pieceTaken = true;
                 square.piece->taken = true;
-                std::cout << "taken ";
             }
 
             if (std::ranges::count(board.enpassantSquares, square.name)) {
@@ -103,7 +101,6 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
                 board.squares[takenSquare].piece->taken = true;
                 board.squares[takenSquare].piece = nullptr;
                 pieceTaken = true;
-                std::cout << "taken " << takenSquare;
             }
             board.enpassantSquares.clear();
 
@@ -118,6 +115,7 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
                             rRook->square->piece = nullptr;
                             board.squares["F1"].piece = rRook;
                             rRook->square = &board.squares["F1"];
+                            shortCastled = true;
                         }
                         if (square.name == "C1") {
                             const auto lRook = board.squares["A1"].piece;
@@ -126,6 +124,7 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
                             lRook->square->piece = nullptr;
                             board.squares["D1"].piece = lRook;
                             lRook->square = &board.squares["D1"];
+                            longCastled = true;
                         }
                     } else {
                         if (square.name == "G8") {
@@ -135,6 +134,7 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
                             rRook->square->piece = nullptr;
                             board.squares["F8"].piece = rRook;
                             rRook->square = &board.squares["F8"];
+                            shortCastled = true;
                         }
                         if (square.name == "C8") {
                             const auto lRook = board.squares["A8"].piece;
@@ -143,6 +143,7 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
                             lRook->square->piece = nullptr;
                             board.squares["D8"].piece = lRook;
                             lRook->square = &board.squares["D8"];
+                            longCastled = true;
                         }
                     }
                 }
@@ -182,17 +183,14 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
             currentPiece->square->piece = nullptr;
             square.piece = currentPiece;
             currentPiece->square = &square;
-            std::cout << notation + " valid \n";
             pawnPromoted = currentPiece->try_promote();
             board.calculateAllLegalMovesByColour(!turn);
             if (currentPiece->colour == PIECE_WHITE) {
                 auto temp = board.attackedSquaresOfColor(PIECE_BLACK);
                 board.blackIsChecked = std::ranges::count(temp, board.blackKing->square->name) >= 1;
-                std::cout << "is black checked? " << board.blackIsChecked << "\n";
             } else {
                 auto temp = board.attackedSquaresOfColor(PIECE_WHITE);
                 board.whiteIsChecked = std::ranges::count(temp, board.whiteKing->square->name) >= 1;
-                std::cout << "is white checked? " << board.whiteIsChecked << "\n";
             }
 
             const auto legalMoveCount = board.getLegalMoveCount(!turn);
@@ -222,6 +220,23 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
                 PlaySound(moveSound);
             }
 
+            // calculate move notation
+            std::string move_notation = {static_cast<char>(square.name[0] + 32), square.name[1]};
+            if (pieceTaken && currentPiece->type != "pawn") {
+                move_notation = {currentPiece->getPieceNotation(), 'x', move_notation[0], move_notation[1]};
+            } else if (pieceTaken) {
+                move_notation = {previousPosition[0], 'x', move_notation[0], move_notation[1]};
+            } else if (shortCastled) {
+                move_notation = "O-O";
+            } else if (longCastled) {
+                move_notation = "O-O-O";
+            } else {
+                move_notation = {currentPiece->getPieceNotation(), move_notation[0], move_notation[1]};
+            }
+            if (board.isColourChecked(!turn)) move_notation += '+';
+            state.move_history.append_move(move_notation);
+            state.move_history.print_history();
+
             foundValidMove = true;
             turn = !turn;
             break;
@@ -236,7 +251,7 @@ void checkDropPosition(Piece *&currentPiece, Board &board, GameState &state) {
     }
 }
 
-void DrawEndGameState(GameState game, const Board &board, const Texture2D &piecesTexture) {
+void DrawEndGameState(const GameState &game, const Board &board, const Texture2D &piecesTexture) {
     for (auto &p: board.pieceList) {
         p.Draw(piecesTexture);
     }
@@ -251,7 +266,7 @@ void DrawEndGameState(GameState game, const Board &board, const Texture2D &piece
 }
 
 int main() {
-    InitWindow(750, 750, TITLE);
+    InitWindow(1150, 750, TITLE);
     std::cout << std::boolalpha;
     InitAudioDevice();
     checkSound = LoadSound("../resources/move-check.wav");
@@ -263,6 +278,8 @@ int main() {
     const Texture2D piecesTexture = LoadTexture("../resources/Chess_Pieces_Sprite.png");
 
     GameState game;
+    const MoveHistory move_history;
+    game.move_history = move_history;
     Board board;
     std::vector<Piece> *pieceList = &board.pieceList;
     pieceList->reserve(32);
@@ -285,7 +302,7 @@ int main() {
         board.addPieceToBoard("bishop", BISHOP, PIECE_WHITE, "F1", piecesTexture);
         board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "G1", piecesTexture);
         board.addPieceToBoard("rook", ROOK, PIECE_WHITE, "H1", piecesTexture);
-        // // Black Pieces
+        // Black Pieces
         board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "A7", piecesTexture);
         board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "B7", piecesTexture);
         board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "C7", piecesTexture);
@@ -304,41 +321,14 @@ int main() {
         board.addPieceToBoard("knight", KNIGHT, PIECE_BLACK, "G8", piecesTexture);
         board.addPieceToBoard("rook", ROOK, PIECE_BLACK, "H8", piecesTexture);
         // TESTING
-        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "A7", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "B5", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "C2", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "D2", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "E2", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "F2", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "G2", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "H2", piecesTexture);
-        // board.addPieceToBoard("rook", ROOK, PIECE_WHITE, "A1", piecesTexture);
-        // board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "B1", piecesTexture);
-        // board.addPieceToBoard("bishop", BISHOP, PIECE_WHITE, "C1", piecesTexture);
-        // board.addPieceToBoard("queen", QUEEN, PIECE_WHITE, "A1", piecesTexture);
-        // board.addPieceToBoard("king", KING, PIECE_WHITE, "E4", piecesTexture);
+
+        // board.addPieceToBoard("king", KING, PIECE_WHITE, "A1", piecesTexture);
         // board.whiteKing = &pieceList->back();
-        // board.addPieceToBoard("bishop", BISHOP, PIECE_WHITE, "F1", piecesTexture);
-        // board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "G1", piecesTexture);
-        // board.addPieceToBoard("rook", ROOK, PIECE_WHITE, "H1", piecesTexture);
-        // Black Pieces
-        // board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "A2", piecesTexture);
-        // board.addPieceToBoard("queen", QUEEN, PIECE_BLACK, "A7", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "C7", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "D6", piecesTexture);
-        // board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "E7", piecesTexture);
-        // board.addPieceToBoard("queen", QUEEN, PIECE_BLACK, "F7", piecesTexture);
-        // board.addPieceToBoard("queen", QUEEN, PIECE_BLACK, "G7", piecesTexture);
-        // board.addPieceToBoard("queen", QUEEN, PIECE_BLACK, "H7", piecesTexture);
-        // board.addPieceToBoard("rook", ROOK, PIECE_BLACK, "A8", piecesTexture);
-        // board.addPieceToBoard("knight", KNIGHT, PIECE_BLACK, "B8", piecesTexture);
-        // board.addPieceToBoard("bishop", BISHOP, PIECE_BLACK, "C8", piecesTexture);
-        // board.addPieceToBoard("queen", QUEEN, PIECE_BLACK, "D8", piecesTexture);
-        // board.addPieceToBoard("king", KING, PIECE_BLACK, "E8", piecesTexture);
+        // board.addPieceToBoard("bishop", BISHOP, PIECE_WHITE, "F4", piecesTexture);
+        // board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "F3", piecesTexture);
+        // board.addPieceToBoard("king", KING, PIECE_BLACK, "F6", piecesTexture);
         // board.blackKing = &pieceList->back();
-        // board.addPieceToBoard("bishop", BISHOP, PIECE_BLACK, "F8", piecesTexture);
-        // board.addPieceToBoard("knight", KNIGHT, PIECE_BLACK, "G8", piecesTexture);
-        // board.addPieceToBoard("rook", ROOK, PIECE_BLACK, "H8", piecesTexture);
+
     }
 
     Piece *currentPiece = nullptr;
@@ -350,7 +340,9 @@ int main() {
         BeginDrawing();
         ClearBackground(DARKBROWN);
         Board::Draw();
-        DrawRectangle(800, 65, 200, 675, LIGHTGRAY);
+
+        // Move history
+        game.move_history.draw();
 
         if (game.state == CHECKMATE || game.state == STALEMATE) {
             DrawEndGameState(game, board, piecesTexture);

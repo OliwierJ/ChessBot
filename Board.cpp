@@ -56,13 +56,13 @@ void Board::calculateAllLegalMoves() {
         if (p.taken) continue;
         p.calculateLegalMoves(this);
         p.remove_moves_leading_to_checks(this);
-        std::cout << p.type << "  " << p.colour << "  ";
-        p.printLegalMoves();
+        // std::cout << p.type << "  " << p.colour << "  ";
+        // p.printLegalMoves();
     }
-    for (auto& p : pieceList) {
-        std::cout << p.type << "  " << p.colour << "  ";
-        p.printLegalMoves();
-    }
+    // for (auto& p : pieceList) {
+        // std::cout << p.type << "  " << p.colour << "  ";
+        // p.printLegalMoves();
+    // }
     whiteKing->calculateLegalMoves(this);
     blackKing->calculateLegalMoves(this);
 
@@ -77,8 +77,8 @@ void Board::calculateAllLegalMovesByColour(const int colour) {
         if (p.taken || p.colour != colour) continue;
         p.calculateLegalMoves(this);
         p.remove_moves_leading_to_checks(this);
-        std::cout << p.type << "  " << p.colour << "  ";
-        p.printLegalMoves();
+        // std::cout << p.type << "  " << p.colour << "  ";
+        // p.printLegalMoves();
     }
     auto king = getKingByColor(colour);
     king->calculateLegalMoves(this);
@@ -118,9 +118,13 @@ size_t Board::getLegalMoveCount(const int colour) const {
 std::vector<std::string> Board::attackedSquaresOfColor(const int colour) {
     std::vector<std::string> allAttackedSquares;
     for (auto& piece: pieceList) {
-        if (!piece.taken && piece.colour != colour && piece.notPawnOrKing()) {
+        if (!piece.taken && piece.colour != colour && piece.notPawnOrKing() && piece.type != "knight") {
             piece.calculateLegalMoves(this);
             allAttackedSquares.insert(allAttackedSquares.end(), piece.legalMoves.begin(), piece.legalMoves.end());
+        }
+        if (!piece.taken && piece.colour != colour && piece.type == "knight") {
+            piece.calculateLegalMoves(this);
+            allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(), piece.attackingSquares.end());
         }
         if (!piece.taken && piece.colour != colour && !piece.notPawnOrKing()) {
             if (piece.type == "pawn") {

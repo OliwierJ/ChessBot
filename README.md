@@ -68,4 +68,3 @@ Recommended next work (high priority):
 4. Replace header-level `static` globals with constants or scoped objects to avoid duplication across translation units.
 5. Consider stable storage for `Piece` objects (e.g., `std::deque` or owning pointers) to eliminate pointer-invalidations when expanding the collection.
 
-If you want, I can implement step 2 (centralized simulation/rollback helper) next.

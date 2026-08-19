@@ -25,5 +25,7 @@ add_executable(${PROJECT_NAME} main.cpp
         Piece.cpp
         GameState.cpp
         GameState.h
+        MoveHistory.cpp
+        MoveHistory.h
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

@@ -4,6 +4,7 @@
 
 #ifndef CHESSBOT_GAMESTATE_H
 #define CHESSBOT_GAMESTATE_H
+#include "MoveHistory.h"
 
 enum STATE {NORMAL, CHECKMATE, STALEMATE};
 
@@ -11,6 +12,8 @@ class GameState {
 public:
     int state = NORMAL;
     int winner = -1;
+    MoveHistory move_history;
+
     // more states idk
 };
 

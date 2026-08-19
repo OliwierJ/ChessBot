@@ -370,6 +370,15 @@ bool Piece::notPawnOrKing() const {
     return type != "king" && type != "pawn";
 }
 
+char Piece::getPieceNotation() const {
+    if (type == "king") return 'K';
+    if (type == "rook") return 'R';
+    if (type == "queen") return 'Q';
+    if (type == "knight") return 'N';
+    if (type == "bishop") return 'B';
+    return ' ';
+}
+
 Rectangle Piece::getPieceRect(const Texture2D &piecesTexture, const int piece, const int colour) {
     constexpr int cols = 6;
     constexpr int rows = 2;

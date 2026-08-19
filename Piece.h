@@ -51,7 +51,9 @@ public:
     void setCurrentPos(Vector2 pos);
 
     [[nodiscard]]
-     bool notPawnOrKing() const;
+    bool notPawnOrKing() const;
+
+    char getPieceNotation() const;
 
 private:
     const int UP = 1;
