@@ -35,6 +35,10 @@ public:
 
     void printLegalMoves() const;
 
+    void calculate_king_attacking_squares(Board *board);
+
+    bool try_promote();
+
     void calculateLegalMoves(Board *board);
 
     bool isLegalMove(const std::string& move);

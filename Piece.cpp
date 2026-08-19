@@ -89,17 +89,41 @@ Piece::Piece(const std::string &type, const int pieceSprite, const int pieceColo
 void Piece::remove_moves_leading_to_checks(Board *board) {
     for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
         const auto currentSquare = square;
-        const auto possibleMovableSquaresPiece = board->squares[*movesIterator].piece;
-        if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = true;
+        bool enpassantTaken = false;
+        std::string enpassantSquare;
+        Piece* possibleMovableSquaresPiece = nullptr;
+        // check if en passant can take attacking piece
+        if (std::ranges::count(board->enpassantSquares, board->squares[*movesIterator].name)) {
+            const int upOrDownMove = colour == PIECE_WHITE ? -1 : 1;
+            enpassantSquare = {(board->squares[*movesIterator].name[0]), static_cast<char>(board->squares[*movesIterator].name[1] + upOrDownMove)};
+
+            possibleMovableSquaresPiece = board->squares[enpassantSquare].piece;
+            board->squares[enpassantSquare].piece->taken = true;
+            board->squares[enpassantSquare].piece = nullptr;
+            enpassantTaken = true;
+        } else {
+            possibleMovableSquaresPiece = board->squares[*movesIterator].piece;
+            if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = true;
+        }
+        // make phantom move
         square->piece = nullptr;
         square = &board->squares[*movesIterator];
         board->squares[*movesIterator].piece = this;
 
+        // see if king is in check now
         auto newAttackedSquares = board->attackedSquaresOfColor(colour);
         const auto king = board->getKingByColor(colour);
-        bool check = std::ranges::count(newAttackedSquares, king->square->name) >= 1;
+        const bool check = std::ranges::count(newAttackedSquares, king->square->name) >= 1;
+
+        // reset board position
         if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->taken = false;
-        square->piece = possibleMovableSquaresPiece;
+        if (enpassantTaken) {
+            board->squares[enpassantSquare].piece = possibleMovableSquaresPiece;
+            board->squares[*movesIterator].piece = nullptr;
+        } else {
+            square->piece = possibleMovableSquaresPiece;
+        }
+
         square = currentSquare;
         square->piece = this;
         if (check) {
@@ -116,10 +140,48 @@ void Piece::printLegalMoves() const {
     }
     std::cout << "\n";
 }
+
+void Piece::calculate_king_attacking_squares(Board* board) {
+    legalMoves.clear();
+    attackingSquares.clear();
+    const std::string current = square->name;
+    const std::string topLeft = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] + 1)};
+    const std::string up = {current[0], static_cast<char>(current[1] + 1)};
+    const std::string topRight = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] + 1)};
+    const std::string right = {static_cast<char>(current[0] + 1), current[1]};
+    const std::string downRight = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] - 1)};
+    const std::string down = {current[0], static_cast<char>(current[1] - 1)};
+    const std::string downLeft = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] - 1)};
+    const std::string left = {static_cast<char>(current[0] - 1), current[1]};
+
+    const auto moves = {
+        topLeft, up, topRight, right, downRight, down, downLeft, left
+    };
+    attackingSquares.insert(attackingSquares.end(), moves.begin(), moves.end());
+
+}
+
+bool Piece::try_promote() {
+    if (type != "pawn") return false;
+    if ((colour == PIECE_WHITE && square->name[1] == '8') ||
+        colour == PIECE_BLACK && square->name[1] == '1') {
+        type = "queen";
+        pieceTexture = {
+            (pieceTexture.x / PAWN) * QUEEN,
+            pieceTexture.y,
+            pieceTexture.width,
+            pieceTexture.height
+        };
+        return true;
+    }
+    return false;
+}
 void Piece::calculateLegalMoves(Board* board) {
     legalMoves.clear();
     attackingSquares.clear();
     const std::string current = square->name;
+    if (taken) return;
+
     if (type == "pawn") {
         const int upOrDownMove = colour == PIECE_WHITE ? UP : DOWN;
 
@@ -134,12 +196,12 @@ void Piece::calculateLegalMoves(Board* board) {
         if (board->isPossibleMove(rightTake)) {
             attackingSquares.push_back(rightTake);
         }
-        if (board->isPossibleMove(leftTake) && board->squares[leftTake].piece && board->squares[leftTake].piece->colour !=
-            colour) {
+        if ((board->isPossibleMove(leftTake) && board->squares[leftTake].piece && board->squares[leftTake].piece->colour !=
+            colour) || std::ranges::count(board->enpassantSquares, leftTake)) {
             legalMoves.push_back(leftTake);
         }
-        if (board->isPossibleMove(rightTake) && board->squares[rightTake].piece && board->squares[rightTake].piece->colour
-            != colour) {
+        if ((board->isPossibleMove(rightTake) && board->squares[rightTake].piece && board->squares[rightTake].piece->colour
+            != colour) || std::ranges::count(board->enpassantSquares, rightTake)) {
             legalMoves.push_back(rightTake);
         }
         if (!board->squares[upOne].piece) {
@@ -228,21 +290,42 @@ void Piece::calculateLegalMoves(Board* board) {
     }
 
     if (type == "king") {
-        std::string topLeft = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] + 1)};
-        std::string up = {current[0], static_cast<char>(current[1] + 1)};
-        std::string topRight = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] + 1)};
-        std::string right = {static_cast<char>(current[0] + 1), current[1]};
-        std::string downRight = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] - 1)};
-        std::string down = {current[0], static_cast<char>(current[1] - 1)};
-        std::string downLeft = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] - 1)};
-        std::string left = {static_cast<char>(current[0] - 1), current[1]};
+        const std::string topLeft = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] + 1)};
+        const std::string up = {current[0], static_cast<char>(current[1] + 1)};
+        const std::string topRight = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] + 1)};
+        const std::string right = {static_cast<char>(current[0] + 1), current[1]};
+        const std::string downRight = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] - 1)};
+        const std::string down = {current[0], static_cast<char>(current[1] - 1)};
+        const std::string downLeft = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] - 1)};
+        const std::string left = {static_cast<char>(current[0] - 1), current[1]};
 
         legalMoves = {
             topLeft, up, topRight, right, downRight, down, downLeft, left
         };
-        attackingSquares.insert(attackingSquares.end(), legalMoves.begin(), legalMoves.end());
 
         auto attackedSquares = board->attackedSquaresOfColor(colour);
+
+        if (!hasMoved && !board->isColourChecked(colour)) {
+            if (colour == PIECE_WHITE) {
+                if (board->whiteCanShortCastle && board->is_square_empty("F1") && board->is_square_empty("G1") && std::ranges::count(attackedSquares, "F1") == 0) {
+                    legalMoves.push_back("G1");
+                }
+                if (board->whiteCanLongCastle && board->is_square_empty("B1") && board->is_square_empty("C1") && board->is_square_empty("D1") && std::ranges::count(attackedSquares, "D1") == 0) {
+                    legalMoves.push_back("C1");
+                }
+            }
+            if (colour == PIECE_BLACK) {
+                if (board->blackCanShortCastle && board->is_square_empty("F8") && board->is_square_empty("G8") && std::ranges::count(attackedSquares, "F8") == 0) {
+                    legalMoves.push_back("G8");
+                }
+                if (board->blackCanLongCastle && board->is_square_empty("B8") && board->is_square_empty("C8") && board->is_square_empty("D8") && std::ranges::count(attackedSquares, "D8") == 0) {
+                    legalMoves.push_back("C8");
+                }
+            }
+        }
+        attackingSquares.insert(attackingSquares.end(), legalMoves.begin(), legalMoves.end());
+
+
 
         for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
             if (std::ranges::count(board->possibleMoves, *movesIterator) != 1) {

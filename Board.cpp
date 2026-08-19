@@ -59,13 +59,17 @@ void Board::calculateAllLegalMoves() {
         std::cout << p.type << "  " << p.colour << "  ";
         p.printLegalMoves();
     }
-    // for (auto& p : pieceList) {
-    //     std::cout << p.type << "  " << p.colour << "  ";
-    //     p.printLegalMoves();
-    // }
+    for (auto& p : pieceList) {
+        std::cout << p.type << "  " << p.colour << "  ";
+        p.printLegalMoves();
+    }
     whiteKing->calculateLegalMoves(this);
     blackKing->calculateLegalMoves(this);
 
+}
+
+bool Board::is_square_empty(const std::string &square) {
+    return squares[square].piece == nullptr;
 }
 
 void Board::calculateAllLegalMovesByColour(const int colour) {
@@ -102,12 +106,11 @@ Piece * Board::getKingByColor(const int colour) const {
     return blackKing;
 }
 
-size_t Board::GetLegalMoveCount(const int colour) const {
+size_t Board::getLegalMoveCount(const int colour) const {
     size_t count = 0;
     for (const auto& p : pieceList) {
-        if (p.colour == colour) {
+        if (p.colour == colour && !p.taken) {
             count += p.legalMoves.size();
-            count += p.attackingSquares.size();
         }
     }
     return count;
@@ -120,7 +123,12 @@ std::vector<std::string> Board::attackedSquaresOfColor(const int colour) {
             allAttackedSquares.insert(allAttackedSquares.end(), piece.legalMoves.begin(), piece.legalMoves.end());
         }
         if (!piece.taken && piece.colour != colour && !piece.notPawnOrKing()) {
-            if (piece.type == "pawn") piece.calculateLegalMoves(this);
+            if (piece.type == "pawn") {
+                piece.calculateLegalMoves(this);
+            }
+            if (piece.type == "king") {
+                piece.calculate_king_attacking_squares(this);
+            }
             allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(), piece.attackingSquares.end());
         }
     }

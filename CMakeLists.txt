@@ -23,5 +23,7 @@ add_executable(${PROJECT_NAME} main.cpp
         Board.cpp
         Board.h
         Piece.cpp
+        GameState.cpp
+        GameState.h
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

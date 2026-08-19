@@ -41,17 +41,26 @@ public:
     // calculates all legal moves for all pieces, followed by both kings
     void calculateAllLegalMoves();
 
+    bool is_square_empty(const std::string &square);
+
     void calculateAllLegalMovesByColour(int colour);
 
     // Creates a piece and adds it to the board square and piece list
     void addPieceToBoard(const std::string &type, int sprite, int colour, const std::string &square, const Texture2D &texture);
+
+    bool whiteCanShortCastle = true;
+    bool whiteCanLongCastle = true;
+    bool blackCanShortCastle = true;
+    bool blackCanLongCastle = true;
+
+    std::vector<std::string> enpassantSquares = {};
 
     [[nodiscard]]
     bool isColourChecked(int colour) const;
 
     Piece* getKingByColor(int colour) const;
 
-    size_t GetLegalMoveCount(int colour) const;
+    size_t getLegalMoveCount(int colour) const;
 
     // Gets all the attacked squares for a colour
     std::vector<std::string> attackedSquaresOfColor(int colour);
