@@ -204,9 +204,9 @@ void Piece::calculateLegalMoves(Board* board) {
             != colour) || std::ranges::count(board->enpassantSquares, rightTake)) {
             legalMoves.push_back(rightTake);
         }
-        if (!board->squares[upOne].piece) {
+        if (board->isPossibleMove(upOne) && !board->squares[upOne].piece) {
             legalMoves.push_back(upOne);
-            if (!board->squares[upTwo].piece && !hasMoved)
+            if (board->isPossibleMove(upTwo) && !board->squares[upTwo].piece && !hasMoved)
                 legalMoves.push_back(upTwo);
         }
 
