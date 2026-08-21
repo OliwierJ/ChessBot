@@ -4,7 +4,10 @@
 
 #ifndef CHESSBOT_MOVEVALIDATOR_H
 #define CHESSBOT_MOVEVALIDATOR_H
-#include "Piece.h"
+
+class Piece;
+class Board;
+class BoardSquare;
 
 struct MoveOutcome {
     bool pieceTaken = false;

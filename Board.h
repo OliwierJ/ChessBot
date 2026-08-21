@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "BoardSquare.h"
+#include "Piece.h"
 
 constexpr int SQUARE_SIZE = 75;
 
@@ -46,7 +47,9 @@ public:
     void calculateAllLegalMovesByColour(int colour);
 
     // Creates a piece and adds it to the board square and piece list
-    void addPieceToBoard(const std::string &type, int sprite, int colour, const std::string &square, const Texture2D &texture);
+    void addPieceToBoard(PieceType type, PieceColor colour, const std::string &square, const Texture2D &texture);
+
+    void set_up_pieces(const Texture2D &piecesTexture);
 
     bool whiteCanShortCastle = true;
     bool whiteCanLongCastle = true;

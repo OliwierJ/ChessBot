@@ -53,7 +53,7 @@ bool Board::isPossibleMove(const std::string &move) {
 
 void Board::calculateAllLegalMoves() {
     for (auto &p: pieceList) {
-        if (p.taken) continue;
+        if (p.captured) continue;
         p.calculateLegalMoves(this);
         p.remove_moves_leading_to_checks(this);
     }
@@ -69,7 +69,7 @@ bool Board::is_square_empty(const std::string &square) {
 
 void Board::calculateAllLegalMovesByColour(const int colour) {
     for (auto &p: pieceList) {
-        if (p.taken || p.colour != colour) continue;
+        if (p.captured || p.colour != colour) continue;
         p.calculateLegalMoves(this);
         p.remove_moves_leading_to_checks(this);
     }
@@ -78,15 +78,60 @@ void Board::calculateAllLegalMovesByColour(const int colour) {
 
 }
 
-void Board::addPieceToBoard(const std::string& type, const int sprite, const int colour, const std::string &square, const Texture2D& texture) {
+void Board::addPieceToBoard(PieceType type, PieceColor colour, const std::string &square, const Texture2D& texture) {
     if (!isPossibleMove(square))
         throw std::invalid_argument(
-            "Cannot add piece to illegal square.\nTried to create piece " +
-            type + " at illegal position " + square
+            "Cannot add piece to illegal square.\nTried to create piece at illegal position " + square
         );
 
-    pieceList.emplace_back(type, sprite, colour, this->squares[square], texture);
+    pieceList.emplace_back(type, colour, this->squares[square], texture);
     squares[square].piece = &pieceList.back();
+}
+
+void Board::set_up_pieces(const Texture2D &piecesTexture) {
+    pieceList.reserve(32);
+    {
+        // White Pieces
+        addPieceToBoard(PAWN, PIECE_WHITE, "A2", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_WHITE, "B2", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_WHITE, "C2", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_WHITE, "D2", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_WHITE, "E2", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_WHITE, "F2", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_WHITE, "G2", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_WHITE, "H2", piecesTexture);
+        addPieceToBoard(ROOK, PIECE_WHITE, "A1", piecesTexture);
+        addPieceToBoard(KNIGHT, PIECE_WHITE, "B1", piecesTexture);
+        addPieceToBoard(BISHOP, PIECE_WHITE, "C1", piecesTexture);
+        addPieceToBoard(QUEEN, PIECE_WHITE, "D1", piecesTexture);
+        addPieceToBoard(KING, PIECE_WHITE, "E1", piecesTexture);
+        whiteKing = &pieceList.back();
+        addPieceToBoard(BISHOP, PIECE_WHITE, "F1", piecesTexture);
+        addPieceToBoard(KNIGHT, PIECE_WHITE, "G1", piecesTexture);
+        addPieceToBoard(ROOK, PIECE_WHITE, "H1", piecesTexture);
+        // Black Pieces
+        addPieceToBoard(PAWN, PIECE_BLACK, "A7", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_BLACK, "B7", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_BLACK, "C7", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_BLACK, "D7", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_BLACK, "E7", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_BLACK, "F7", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_BLACK, "G7", piecesTexture);
+        addPieceToBoard(PAWN, PIECE_BLACK, "H7", piecesTexture);
+        addPieceToBoard(ROOK, PIECE_BLACK, "A8", piecesTexture);
+        addPieceToBoard(KNIGHT, PIECE_BLACK, "B8", piecesTexture);
+        addPieceToBoard(BISHOP, PIECE_BLACK, "C8", piecesTexture);
+        addPieceToBoard(QUEEN, PIECE_BLACK, "D8", piecesTexture);
+        addPieceToBoard(KING, PIECE_BLACK, "E8", piecesTexture);
+        blackKing = &pieceList.back();
+        addPieceToBoard(BISHOP, PIECE_BLACK, "F8", piecesTexture);
+        addPieceToBoard(KNIGHT, PIECE_BLACK, "G8", piecesTexture);
+        addPieceToBoard(ROOK, PIECE_BLACK, "H8", piecesTexture);
+    }
+
+    for (auto &p: pieceList) {
+        p.calculateLegalMoves(this);
+    }
 }
 
 bool Board::isColourChecked(const int colour) const {
@@ -102,7 +147,7 @@ Piece * Board::getKingByColor(const int colour) const {
 size_t Board::getLegalMoveCount(const int colour) const {
     size_t count = 0;
     for (const auto& p : pieceList) {
-        if (p.colour == colour && !p.taken) {
+        if (p.colour == colour && !p.captured) {
             count += p.legalMoves.size();
         }
     }
@@ -111,19 +156,19 @@ size_t Board::getLegalMoveCount(const int colour) const {
 std::vector<std::string> Board::attackedSquaresOfColor(const int colour) {
     std::vector<std::string> allAttackedSquares;
     for (auto& piece: pieceList) {
-        if (!piece.taken && piece.colour != colour && piece.notPawnOrKing() && piece.type != "knight") {
+        if (!piece.captured && piece.colour != colour && piece.notPawnOrKing() && piece.type != KNIGHT) {
             piece.calculateLegalMoves(this);
             allAttackedSquares.insert(allAttackedSquares.end(), piece.legalMoves.begin(), piece.legalMoves.end());
         }
-        if (!piece.taken && piece.colour != colour && piece.type == "knight") {
+        if (!piece.captured && piece.colour != colour && piece.type == KNIGHT) {
             piece.calculateLegalMoves(this);
             allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(), piece.attackingSquares.end());
         }
-        if (!piece.taken && piece.colour != colour && !piece.notPawnOrKing()) {
-            if (piece.type == "pawn") {
+        if (!piece.captured && piece.colour != colour && !piece.notPawnOrKing()) {
+            if (piece.type == PAWN) {
                 piece.calculateLegalMoves(this);
             }
-            if (piece.type == "king") {
+            if (piece.type == KING) {
                 piece.calculate_king_attacking_squares(this);
             }
             allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(), piece.attackingSquares.end());

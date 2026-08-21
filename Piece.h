@@ -4,13 +4,15 @@
 #include "raylib.h"
 #include <string>
 #include <vector>
-#include "Board.h"
+
 #include "BoardSquare.h"
+
+class Board;
 
 static int s_id = 0;
 constexpr float BOX_SIZE = 60;
 
-enum Pieces { KING, QUEEN, BISHOP, KNIGHT, ROOK, PAWN };
+enum PieceType { KING, QUEEN, BISHOP, KNIGHT, ROOK, PAWN };
 enum PieceColor { PIECE_WHITE, PIECE_BLACK };
 
 class Piece {
@@ -20,16 +22,16 @@ public:
     Rectangle boundingBox{};
     Vector2 lastPosition{};
     int id;
-    int colour;
+    PieceColor colour;
     bool isCurrentlyHeld = false;
-    bool taken = false;
+    bool captured = false;
+    bool hasMoved = false;
     BoardSquare *square;
     std::vector<std::string> legalMoves;
     std::vector<std::string> attackingSquares;
-    std::string type;
-    bool hasMoved = false;
+    PieceType type;
 
-    Piece(const std::string &type, int pieceSprite, int pieceColour, BoardSquare &square, const Texture2D &texture);
+    Piece(PieceType type, PieceColor pieceColour, BoardSquare &square, const Texture2D &texture);
 
     void remove_moves_leading_to_checks(Board *board);
 

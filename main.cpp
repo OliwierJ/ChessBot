@@ -13,7 +13,6 @@
 
 auto TITLE = "Chess";
 
-static bool turn = PIECE_WHITE;
 constexpr int WINDOW_WIDTH = 1150;
 constexpr int WINDOW_HEIGHT = 750;
 
@@ -37,28 +36,25 @@ void play_move_sound(const Board &board, const MoveOutcome move_outcome) {
     }
 }
 
-bool finalize_move(Piece *&currentPiece, const Board &board, GameState &state, const std::string &previousPosition,
+bool finalize_move(Piece *&currentPiece, const Board &board, GameState &game, const std::string &previousPosition,
                    const BoardSquare &square, const MoveOutcome move_outcome) {
-    const auto legalMoveCount = board.getLegalMoveCount(!turn);
-    if (board.isColourChecked(!turn)) {
+    const auto legalMoveCount = board.getLegalMoveCount(!game.turn);
+
+    if (board.isColourChecked(!game.turn)) {
         if (legalMoveCount == 0) {
-            state.state = CHECKMATE;
-            state.winner = turn;
-            currentPiece = nullptr;
+            game.state = CHECKMATE;
+            game.winner = game.turn;
             PlaySound(gameEndSound);
-            return true;
         }
     }
-    if (legalMoveCount == 0 && !board.isColourChecked(!turn)) {
-        state.state = STALEMATE;
-        currentPiece = nullptr;
+    if (legalMoveCount == 0 && !board.isColourChecked(!game.turn)) {
+        game.state = STALEMATE;
         PlaySound(gameEndSound);
-        return true;
     }
 
     // calculate move notation
     std::string move_notation = {static_cast<char>(square.name[0] + 32), square.name[1]};
-    if (move_outcome.pieceTaken && currentPiece->type != "pawn") {
+    if (move_outcome.pieceTaken && currentPiece->type != PAWN) {
         move_notation = {currentPiece->getPieceNotation(), 'x', move_notation[0], move_notation[1]};
     } else if (move_outcome.pieceTaken) {
         move_notation = {static_cast<char>(previousPosition[0] + 32), 'x', move_notation[0], move_notation[1]};
@@ -69,14 +65,17 @@ bool finalize_move(Piece *&currentPiece, const Board &board, GameState &state, c
     } else {
         move_notation = {currentPiece->getPieceNotation(), move_notation[0], move_notation[1]};
     }
-    if (board.isColourChecked(!turn)) move_notation += '+';
-    state.move_history.append_move(move_notation);
+    if (board.isColourChecked(!game.turn) && game.state != CHECKMATE) move_notation += '+';
+    if (game.state == CHECKMATE) move_notation += '#';
 
-    turn = !turn;
+    game.move_history.append_move(move_notation);
+
+    if (game.state == CHECKMATE || game.state == STALEMATE) return true;
+    game.turn = !game.turn;
     return false;
 }
 
-void check_drop_position(Piece *&currentPiece, Board &board, GameState &state) {
+void check_drop_position(Piece *&currentPiece, Board &board, GameState &game) {
     if (currentPiece == nullptr) return;
 
     bool foundValidMove = false;
@@ -87,8 +86,8 @@ void check_drop_position(Piece *&currentPiece, Board &board, GameState &state) {
             if (!MoveValidator::validate_legal_move(currentPiece, square, board)) break;
 
             MoveOutcome move_outcome;
-            MoveValidator::apply_move(currentPiece, board, square, move_outcome, turn);
-            if (finalize_move(currentPiece, board, state, previousPosition, square, move_outcome)) return;
+            MoveValidator::apply_move(currentPiece, board, square, move_outcome, game.turn);
+            if (finalize_move(currentPiece, board, game, previousPosition, square, move_outcome)) return;
             foundValidMove = true;
             play_move_sound(board, move_outcome);
             break;
@@ -97,7 +96,7 @@ void check_drop_position(Piece *&currentPiece, Board &board, GameState &state) {
 
     if (!foundValidMove) {
         currentPiece->setCurrentPos({currentPiece->lastPosition.x, currentPiece->lastPosition.y});
-        board.calculateAllLegalMovesByColour(turn);
+        board.calculateAllLegalMovesByColour(game.turn);
     } else {
         currentPiece = nullptr;
     }
@@ -115,6 +114,11 @@ void DrawEndGameState(const GameState &game, const Board &board, const Texture2D
     } else {
         DrawText("Stalemate!", 300, 300, 30, WHITE);
     }
+
+    DrawRectangle(260, 380, 225, 60, BLACK);
+    DrawRectangle(265, 385, 215, 50, WHITE);
+    DrawText("Restart", 325, 400, 28, BLACK);
+
 }
 
 void load_sounds() {
@@ -133,6 +137,32 @@ void load_sounds() {
     gameEndSound = load_sound(".mp3", game_end_mp3, game_end_mp3_size);
 }
 
+void perform_bot_move(GameState &game, Board &board) {
+    if (game.bot_game && game.turn) {
+        bool found_piece = false;
+        Piece *random_piece = nullptr;
+        std::string move;
+        while (!found_piece) {
+            const int randomPieceIndex = std::rand() % board.pieceList.size();
+            random_piece = &board.pieceList[randomPieceIndex];
+            if (random_piece->captured) continue;
+            if (random_piece->colour != game.turn) continue;
+            if (random_piece->legalMoves.empty()) continue;
+
+            const int randomMoveIndex = std::rand() % random_piece->legalMoves.size();
+            move = random_piece->legalMoves[randomMoveIndex];
+            if (!MoveValidator::validate_legal_move(random_piece, board.squares[move], board)) continue;
+            found_piece = true;
+        }
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        const std::string previousPosition = random_piece->square->name;
+        MoveOutcome move_outcome;
+        MoveValidator::apply_move(random_piece, board, board.squares[move], move_outcome, game.turn);
+        finalize_move(random_piece, board, game, previousPosition, board.squares[move], move_outcome);
+        play_move_sound(board, move_outcome);
+    }
+}
+
 int main() {
     // initialise
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, TITLE);
@@ -147,55 +177,10 @@ int main() {
     GameState game;
     const MoveHistory move_history;
     game.move_history = move_history;
+
     Board board;
-    std::vector<Piece> *pieceList = &board.pieceList;
-    bool botGame = true;
-
-    pieceList->reserve(32);
-    {
-        // White Pieces
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "A2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "B2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "C2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "D2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "E2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "F2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "G2", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_WHITE, "H2", piecesTexture);
-        board.addPieceToBoard("rook", ROOK, PIECE_WHITE, "A1", piecesTexture);
-        board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "B1", piecesTexture);
-        board.addPieceToBoard("bishop", BISHOP, PIECE_WHITE, "C1", piecesTexture);
-        board.addPieceToBoard("queen", QUEEN, PIECE_WHITE, "D1", piecesTexture);
-        board.addPieceToBoard("king", KING, PIECE_WHITE, "E1", piecesTexture);
-        board.whiteKing = &pieceList->back();
-        board.addPieceToBoard("bishop", BISHOP, PIECE_WHITE, "F1", piecesTexture);
-        board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "G1", piecesTexture);
-        board.addPieceToBoard("rook", ROOK, PIECE_WHITE, "H1", piecesTexture);
-        // Black Pieces
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "A7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "B7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "C7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "D7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "E7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "F7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "G7", piecesTexture);
-        board.addPieceToBoard("pawn", PAWN, PIECE_BLACK, "H7", piecesTexture);
-        board.addPieceToBoard("rook", ROOK, PIECE_BLACK, "A8", piecesTexture);
-        board.addPieceToBoard("knight", KNIGHT, PIECE_BLACK, "B8", piecesTexture);
-        board.addPieceToBoard("bishop", BISHOP, PIECE_BLACK, "C8", piecesTexture);
-        board.addPieceToBoard("queen", QUEEN, PIECE_BLACK, "D8", piecesTexture);
-        board.addPieceToBoard("king", KING, PIECE_BLACK, "E8", piecesTexture);
-        board.blackKing = &pieceList->back();
-        board.addPieceToBoard("bishop", BISHOP, PIECE_BLACK, "F8", piecesTexture);
-        board.addPieceToBoard("knight", KNIGHT, PIECE_BLACK, "G8", piecesTexture);
-        board.addPieceToBoard("rook", ROOK, PIECE_BLACK, "H8", piecesTexture);
-
-    }
-
+    board.set_up_pieces(piecesTexture);
     Piece *currentPiece = nullptr;
-    for (auto &p: *pieceList) {
-        p.calculateLegalMoves(&board);
-    }
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -216,10 +201,10 @@ int main() {
         const Vector2 mouse = GetMousePosition();
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            for (auto &p: *pieceList) {
-                if (p.taken) continue;
-                if (turn != p.colour) continue;
-                if (botGame && turn) continue;
+            for (auto &p: board.pieceList) {
+                if (p.captured) continue;
+                if (game.turn != p.colour) continue;
+                if (game.bot_game && game.turn) continue;
                 if (CheckCollisionPointRec(mouse, p.boundingBox)) {
                     p.isCurrentlyHeld = true;
                     currentPiece = &p;
@@ -229,7 +214,7 @@ int main() {
             }
         }
         // Move held piece with cursor
-        for (auto &p: *pieceList) {
+        for (auto &p: board.pieceList) {
             if (p.isCurrentlyHeld) {
                 if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                     p.setCurrentPos({mouse.x - p.boundingBox.width / 2, mouse.y - p.boundingBox.height / 2});
@@ -245,7 +230,7 @@ int main() {
             check_drop_position(currentPiece, board, game);
             Board::Draw();
             game.move_history.draw();
-            for (auto &p: *pieceList) {
+            for (auto &p: board.pieceList) {
                 p.Draw(piecesTexture);
             }
         }
@@ -259,35 +244,13 @@ int main() {
         }
 
 
-        if (!turn)
+        if (!game.turn)
             DrawText("White's turn", 10, 10, 20, WHITE);
-        if (turn)
+        if (game.turn)
             DrawText("Black's turn", 10, 10, 20, WHITE);
 
         EndDrawing();
-        if (botGame && turn) {
-            bool found_piece = false;
-            Piece *random_piece = nullptr;
-            std::string move;
-            while (!found_piece) {
-                const int randomPieceIndex = std::rand() % board.pieceList.size();
-                random_piece = &board.pieceList[randomPieceIndex];
-                if (random_piece->taken) continue;
-                if (random_piece->colour != turn) continue;
-                if (random_piece->legalMoves.empty()) continue;
-
-                const int randomMoveIndex = std::rand() % random_piece->legalMoves.size();
-                move = random_piece->legalMoves[randomMoveIndex];
-                if (!MoveValidator::validate_legal_move(random_piece, board.squares[move], board)) continue;
-                found_piece = true;
-            }
-            _sleep(1000);
-            const std::string previousPosition = random_piece->square->name;
-            MoveOutcome move_outcome;
-            MoveValidator::apply_move(random_piece, board, board.squares[move], move_outcome, turn);
-            finalize_move(random_piece, board, game, previousPosition, board.squares[move], move_outcome);
-            play_move_sound(board, move_outcome);
-        }
+        perform_bot_move(game, board);
     }
 
     UnloadTexture(piecesTexture);
