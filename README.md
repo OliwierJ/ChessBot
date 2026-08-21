@@ -41,8 +41,7 @@ The project has progressed from a visual board to a lightweight rules-capable ga
 
 - Promotion currently auto-promotes to queen via `try_promote()`; a promotion UI is not implemented.
 - The rules engine is functional but not exhaustively tested; edge cases could remain.
-- Piece ownership uses a `std::vector<Piece>` and stores raw `Piece*` in squares — be cautious if changing container semantics (promotion or removal could invalidate pointers without reserve).
-
+- No way to scroll up through the moves in the moves history
 ## Build
 
 The project uses CMake and targets C++23. If `raylib` is not installed locally, CMake will fetch it.
@@ -60,11 +59,7 @@ After building, run the executable from the build folder. The program opens a 11
 
 ## Next Steps
 
-Recommended next work (high priority):
-
 1. Add a promotion selection UI to allow choosing the promoted piece.
-2. Harden simulation/rollback logic in `checkDropPosition` so temporary state (captured flags, en-passant removal) is always restored on rejected moves.
-3. Add unit or harness tests for move-generation edge cases (en passant, discovered checks, promotions).
-4. Replace header-level `static` globals with constants or scoped objects to avoid duplication across translation units.
-5. Consider stable storage for `Piece` objects (e.g., `std::deque` or owning pointers) to eliminate pointer-invalidations when expanding the collection.
-
+2. Allow the ability to select between two-player and a bot game.
+3. Create a game start and game reset screen.
+4. Eventually add logic to the bot.
