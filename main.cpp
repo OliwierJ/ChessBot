@@ -119,8 +119,8 @@ void DrawEndGameState(const GameState &game, const Board &board, const Texture2D
 
 void load_sounds() {
     auto load_sound = [](const char *fileType, const unsigned char *data, const std::size_t size) {
-        Wave wave = LoadWaveFromMemory(fileType, data, static_cast<int>(size));
-        Sound sound = LoadSoundFromWave(wave);
+        const Wave wave = LoadWaveFromMemory(fileType, data, static_cast<int>(size));
+        const Sound sound = LoadSoundFromWave(wave);
         UnloadWave(wave);
         return sound;
     };
@@ -189,14 +189,7 @@ int main() {
         board.addPieceToBoard("bishop", BISHOP, PIECE_BLACK, "F8", piecesTexture);
         board.addPieceToBoard("knight", KNIGHT, PIECE_BLACK, "G8", piecesTexture);
         board.addPieceToBoard("rook", ROOK, PIECE_BLACK, "H8", piecesTexture);
-        // TESTING
 
-        // board.addPieceToBoard("king", KING, PIECE_WHITE, "A1", piecesTexture);
-        // board.whiteKing = &pieceList->back();
-        // board.addPieceToBoard("bishop", BISHOP, PIECE_WHITE, "F4", piecesTexture);
-        // board.addPieceToBoard("knight", KNIGHT, PIECE_WHITE, "F3", piecesTexture);
-        // board.addPieceToBoard("king", KING, PIECE_BLACK, "F6", piecesTexture);
-        // board.blackKing = &pieceList->back();
     }
 
     Piece *currentPiece = nullptr;
@@ -251,6 +244,7 @@ int main() {
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             check_drop_position(currentPiece, board, game);
             Board::Draw();
+            game.move_history.draw();
             for (auto &p: *pieceList) {
                 p.Draw(piecesTexture);
             }
@@ -282,7 +276,6 @@ int main() {
                 if (random_piece->colour != turn) continue;
                 if (random_piece->legalMoves.empty()) continue;
 
-                std::cout << random_piece->type << " " << random_piece->square->name << "\n";
                 const int randomMoveIndex = std::rand() % random_piece->legalMoves.size();
                 move = random_piece->legalMoves[randomMoveIndex];
                 if (!MoveValidator::validate_legal_move(random_piece, board.squares[move], board)) continue;

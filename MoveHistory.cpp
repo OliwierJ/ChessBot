@@ -9,13 +9,22 @@
 #include "raylib.h"
 
 void MoveHistory::draw() const {
-    constexpr int offset = 5;
+    constexpr int border = 5;
+    const int moves_count = movesList.size();
+
+    int move_offset = 0;
+    if (moves_count > MOVES_DRAW_LIMIT) {
+        move_offset = ((moves_count / MOVES_DRAW_LIMIT) - 1) * MOVES_DRAW_LIMIT;
+        move_offset += (moves_count % MOVES_DRAW_LIMIT);
+        move_offset % 2 == 0 ? move_offset : move_offset++; // round offset to even number
+    }
+
     DrawRectangle(750, 75, 300, 600, BLACK);
-    DrawRectangle(750 + offset, 75 + offset, 300 - offset * 2, 600 - offset * 2, GRAY);
+    DrawRectangle(750 + border, 75 + border, 300 - border * 2, 600 - border * 2, GRAY);
     int text_offset_y = 0;
     int text_offset_x = 0;
 
-    for (size_t i = 0; i < movesList.size(); i++) {
+    for (size_t i = move_offset; i < moves_count; i++) {
         const int move = (i / 2) + 1;
         if (i % 2 == 0) {
             auto number_str = std::to_string(move) + ".";

@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+constexpr int MOVES_DRAW_LIMIT = 30;
 
 class MoveHistory {
     std::vector<std::string> movesList;
