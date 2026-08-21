@@ -5,6 +5,29 @@ set(CMAKE_CXX_STANDARD 23)
 set(PROJECT_NAME ChessBot)
 set(RAYLIB_VERSION 5.5)
 
+set(EMBEDDED_RESOURCES_HEADER "${CMAKE_CURRENT_BINARY_DIR}/embedded_resources.h")
+set(RESOURCE_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/move-check.wav"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/move-self.wav"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/illegal.wav"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/capture.mp3"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/promote.mp3"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/game-end.mp3"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/Chess_Pieces_Sprite.png"
+)
+
+set(EMBEDDED_RESOURCES "#pragma once\n\n#include <cstddef>\n\n")
+foreach (RESOURCE_FILE IN LISTS RESOURCE_FILES)
+    get_filename_component(RESOURCE_NAME "${RESOURCE_FILE}" NAME)
+    string(REGEX REPLACE "[^a-zA-Z0-9]" "_" RESOURCE_SYMBOL "${RESOURCE_NAME}")
+    file(READ "${RESOURCE_FILE}" RESOURCE_HEX HEX)
+    string(REGEX REPLACE "([0-9a-fA-F][0-9a-fA-F])" "0x\\1," RESOURCE_BYTES "${RESOURCE_HEX}")
+    string(APPEND EMBEDDED_RESOURCES
+            "inline constexpr unsigned char ${RESOURCE_SYMBOL}[] = {${RESOURCE_BYTES}};\n"
+            "inline constexpr std::size_t ${RESOURCE_SYMBOL}_size = sizeof(${RESOURCE_SYMBOL});\n\n")
+endforeach ()
+file(GENERATE OUTPUT "${EMBEDDED_RESOURCES_HEADER}" CONTENT "${EMBEDDED_RESOURCES}")
+
 find_package(raylib QUIET)
 if (NOT raylib_FOUND)
     include(FetchContent)
@@ -29,5 +52,6 @@ add_executable(${PROJECT_NAME} main.cpp
         MoveHistory.h
         MoveValidator.cpp
         MoveValidator.h
+        "${EMBEDDED_RESOURCES_HEADER}"
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

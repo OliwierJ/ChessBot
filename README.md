@@ -56,7 +56,7 @@ cmake --build build
 
 ## Run
 
-After building, run the executable from the build folder. The program opens a 750x750 window and includes an audio device; audio resources are loaded from `resources/` and cleaned up at exit.
+After building, run the executable from the build folder. The program opens a 1150x750 window and includes an audio device. Audio and image resources are embedded into the executable during the CMake configure step, so the `resources/` directory is not needed at runtime.
 
 ## Next Steps
 

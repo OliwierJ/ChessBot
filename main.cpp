@@ -9,6 +9,7 @@
 #include "MoveValidator.h"
 #include "raylib.h"
 #include "Piece.h"
+#include "embedded_resources.h"
 
 auto TITLE = "Chess";
 
@@ -117,12 +118,19 @@ void DrawEndGameState(const GameState &game, const Board &board, const Texture2D
 }
 
 void load_sounds() {
-    checkSound = LoadSound("../resources/move-check.wav");
-    moveSound = LoadSound("../resources/move-self.wav");
-    illegalMoveSound = LoadSound("../resources/illegal.wav");
-    captureSound = LoadSound("../resources/capture.mp3");
-    promoteSound = LoadSound("../resources/promote.mp3");
-    gameEndSound = LoadSound("../resources/game-end.mp3");
+    auto load_sound = [](const char *fileType, const unsigned char *data, const std::size_t size) {
+        Wave wave = LoadWaveFromMemory(fileType, data, static_cast<int>(size));
+        Sound sound = LoadSoundFromWave(wave);
+        UnloadWave(wave);
+        return sound;
+    };
+
+    checkSound = load_sound(".wav", move_check_wav, move_check_wav_size);
+    moveSound = load_sound(".wav", move_self_wav, move_self_wav_size);
+    illegalMoveSound = load_sound(".wav", illegal_wav, illegal_wav_size);
+    captureSound = load_sound(".mp3", capture_mp3, capture_mp3_size);
+    promoteSound = load_sound(".mp3", promote_mp3, promote_mp3_size);
+    gameEndSound = load_sound(".mp3", game_end_mp3, game_end_mp3_size);
 }
 
 int main() {
@@ -131,7 +139,9 @@ int main() {
     InitAudioDevice();
     load_sounds();
     std::cout << std::boolalpha;
-    const Texture2D piecesTexture = LoadTexture("../resources/Chess_Pieces_Sprite.png");
+    const Image piecesImage = LoadImageFromMemory(".png", Chess_Pieces_Sprite_png, Chess_Pieces_Sprite_png_size);
+    const Texture2D piecesTexture = LoadTextureFromImage(piecesImage);
+    UnloadImage(piecesImage);
     srand(time(nullptr));
 
     GameState game;
@@ -240,6 +250,7 @@ int main() {
 
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             check_drop_position(currentPiece, board, game);
+            Board::Draw();
             for (auto &p: *pieceList) {
                 p.Draw(piecesTexture);
             }
