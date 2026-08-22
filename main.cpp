@@ -38,23 +38,24 @@ void play_move_sound(const Board &board, const MoveOutcome move_outcome) {
 
 bool finalize_move(Piece *&currentPiece, const Board &board, GameState &game, const std::string &previousPosition,
                    const BoardSquare &square, const MoveOutcome move_outcome) {
-    const auto legalMoveCount = board.getLegalMoveCount(!game.turn);
+    const PieceColor opponent = opposite(game.turn);
+    const auto legalMoveCount = board.getLegalMoveCount(opponent);
 
-    if (board.isColourChecked(!game.turn)) {
+    if (board.isColourChecked(opponent)) {
         if (legalMoveCount == 0) {
-            game.state = CHECKMATE;
+            game.state = GameStatus::Checkmate;
             game.winner = game.turn;
             PlaySound(gameEndSound);
         }
     }
-    if (legalMoveCount == 0 && !board.isColourChecked(!game.turn)) {
-        game.state = STALEMATE;
+    if (legalMoveCount == 0 && !board.isColourChecked(opponent)) {
+        game.state = GameStatus::Stalemate;
         PlaySound(gameEndSound);
     }
 
     // calculate move notation
     std::string move_notation = {static_cast<char>(square.name[0] + 32), square.name[1]};
-    if (move_outcome.pieceTaken && currentPiece->type != PAWN) {
+    if (move_outcome.pieceTaken && currentPiece->type != PieceType::Pawn) {
         move_notation = {currentPiece->getPieceNotation(), 'x', move_notation[0], move_notation[1]};
     } else if (move_outcome.pieceTaken) {
         move_notation = {static_cast<char>(previousPosition[0] + 32), 'x', move_notation[0], move_notation[1]};
@@ -65,13 +66,13 @@ bool finalize_move(Piece *&currentPiece, const Board &board, GameState &game, co
     } else {
         move_notation = {currentPiece->getPieceNotation(), move_notation[0], move_notation[1]};
     }
-    if (board.isColourChecked(!game.turn) && game.state != CHECKMATE) move_notation += '+';
-    if (game.state == CHECKMATE) move_notation += '#';
+    if (board.isColourChecked(opponent) && game.state != GameStatus::Checkmate) move_notation += '+';
+    if (game.state == GameStatus::Checkmate) move_notation += '#';
 
     game.move_history.append_move(move_notation);
 
-    if (game.state == CHECKMATE || game.state == STALEMATE) return true;
-    game.turn = !game.turn;
+    if (game.state == GameStatus::Checkmate || game.state == GameStatus::Stalemate) return true;
+    game.turn = opponent;
     return false;
 }
 
@@ -86,7 +87,7 @@ void check_drop_position(Piece *&currentPiece, Board &board, GameState &game) {
             if (!MoveValidator::validate_legal_move(currentPiece, square, board)) break;
 
             MoveOutcome move_outcome;
-            MoveValidator::apply_move(currentPiece, board, square, move_outcome, game.turn);
+            MoveValidator::apply_move(currentPiece, game, square, move_outcome);
             if (finalize_move(currentPiece, board, game, previousPosition, square, move_outcome)) return;
             foundValidMove = true;
             play_move_sound(board, move_outcome);
@@ -107,8 +108,8 @@ void DrawEndGameState(const GameState &game, const Board &board, const Texture2D
         p.Draw(piecesTexture);
     }
     DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, {100, 100, 100, 150});
-    if (game.state == CHECKMATE) {
-        const std::string text = game.winner == 0 ? "White wins!" : "Black wins!";
+    if (game.state == GameStatus::Checkmate) {
+        const std::string text = game.winner == PieceColor::White ? "White wins!" : "Black wins!";
         DrawText("Checkmate!", 300, 300, 30, WHITE);
         DrawText(text.c_str(), 300, 330, 30, WHITE);
     } else {
@@ -138,7 +139,7 @@ void load_sounds() {
 }
 
 void perform_bot_move(GameState &game, Board &board) {
-    if (game.bot_game && game.turn) {
+    if (game.bot_game && game.turn == PieceColor::Black) {
         bool found_piece = false;
         Piece *random_piece = nullptr;
         std::string move;
@@ -157,7 +158,7 @@ void perform_bot_move(GameState &game, Board &board) {
         // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         const std::string previousPosition = random_piece->square->name;
         MoveOutcome move_outcome;
-        MoveValidator::apply_move(random_piece, board, board.squares[move], move_outcome, game.turn);
+        MoveValidator::apply_move(random_piece, game, board.squares[move], move_outcome);
         finalize_move(random_piece, board, game, previousPosition, board.squares[move], move_outcome);
         play_move_sound(board, move_outcome);
     }
@@ -179,6 +180,7 @@ int main() {
     game.move_history = move_history;
 
     Board board;
+    game.board = &board;
     board.set_up_pieces(piecesTexture);
     Piece *currentPiece = nullptr;
 
@@ -191,7 +193,7 @@ int main() {
         game.move_history.draw();
 
         // Game end loop
-        if (game.state == CHECKMATE || game.state == STALEMATE) {
+        if (game.state == GameStatus::Checkmate || game.state == GameStatus::Stalemate) {
             DrawEndGameState(game, board, piecesTexture);
             EndDrawing();
             continue;
@@ -204,7 +206,7 @@ int main() {
             for (auto &p: board.pieceList) {
                 if (p.captured) continue;
                 if (game.turn != p.colour) continue;
-                if (game.bot_game && game.turn) continue;
+                if (game.bot_game && game.turn == PieceColor::Black) continue;
                 if (CheckCollisionPointRec(mouse, p.boundingBox)) {
                     p.isCurrentlyHeld = true;
                     currentPiece = &p;
@@ -244,9 +246,9 @@ int main() {
         }
 
 
-        if (!game.turn)
+        if (game.turn == PieceColor::White)
             DrawText("White's turn", 10, 10, 20, WHITE);
-        if (game.turn)
+        else
             DrawText("Black's turn", 10, 10, 20, WHITE);
 
         EndDrawing();

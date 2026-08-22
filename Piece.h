@@ -5,15 +5,31 @@
 #include <string>
 #include <vector>
 
-#include "BoardSquare.h"
-
 class Board;
+class BoardSquare;
 
 static int s_id = 0;
 constexpr float BOX_SIZE = 60;
 
-enum PieceType { KING, QUEEN, BISHOP, KNIGHT, ROOK, PAWN };
-enum PieceColor { PIECE_WHITE, PIECE_BLACK };
+enum class PieceType {
+    King = 0,
+    Queen = 1,
+    Bishop = 2,
+    Knight = 3,
+    Rook = 4,
+    Pawn = 5
+};
+
+enum class PieceColor {
+    White = 0,
+    Black = 1
+};
+
+constexpr PieceColor opposite(const PieceColor colour) {
+    return colour == PieceColor::White
+        ? PieceColor::Black
+        : PieceColor::White;
+}
 
 class Piece {
 public:
@@ -55,6 +71,7 @@ public:
     [[nodiscard]]
     bool notPawnOrKing() const;
 
+    [[nodiscard]]
     char getPieceNotation() const;
 
 private:
@@ -62,7 +79,7 @@ private:
     const int DOWN = -1;
     const int RIGHT = 1;
     const int LEFT = -1;
-    static Rectangle getPieceRect(const Texture2D &piecesTexture, int piece, int colour);
+    static Rectangle getPieceRect(const Texture2D &piecesTexture, PieceType piece, PieceColor colour);
 };
 
 #endif

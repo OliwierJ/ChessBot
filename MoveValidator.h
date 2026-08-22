@@ -4,6 +4,7 @@
 
 #ifndef CHESSBOT_MOVEVALIDATOR_H
 #define CHESSBOT_MOVEVALIDATOR_H
+#include "GameState.h"
 
 class Piece;
 class Board;
@@ -20,7 +21,7 @@ class MoveValidator {
 public:
     static bool validate_legal_move(Piece *currentPiece, BoardSquare &target_square, Board &board);
 
-    static void apply_move(Piece *&currentPiece, Board &board, BoardSquare &square, MoveOutcome &move_outcome, bool turn);
+    static void apply_move(Piece *&currentPiece, const GameState &game, BoardSquare &square, MoveOutcome &move_outcome);
 };
 
 

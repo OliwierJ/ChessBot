@@ -5,15 +5,16 @@
 #ifndef CHESSBOT_GAMESTATE_H
 #define CHESSBOT_GAMESTATE_H
 #include "MoveHistory.h"
+#include <optional>
 #include "Board.h"
 
-enum STATE {NORMAL, CHECKMATE, STALEMATE};
+enum class GameStatus {Normal, Checkmate, Stalemate};
 
 class GameState {
 public:
-    int turn = 0;
-    int state = NORMAL;
-    int winner = -1;
+    PieceColor turn = PieceColor::White;
+    GameStatus state = GameStatus::Normal;
+    std::optional<PieceColor> winner;
     bool bot_game = true;
     Board* board;
     MoveHistory move_history;

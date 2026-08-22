@@ -2,6 +2,7 @@
 #define CHESSBOT_BOARD_H
 
 #include <algorithm>
+#include <deque>
 #include <map>
 #include <string>
 #include <vector>
@@ -20,7 +21,7 @@ class Board {
 public:
     std::map<std::string, BoardSquare> squares;
     std::vector<std::string> possibleMoves;
-    std::vector<Piece> pieceList;
+    std::deque<Piece> pieceList;
     Piece* whiteKing{};
     Piece* blackKing{};
     bool whiteIsChecked = false;
@@ -34,7 +35,7 @@ public:
     static void Draw();
 
     // Draws the move circle for a legal move
-    void drawLegalMove(const std::string &notation, int colour);
+    void drawLegalMove(const std::string &notation, PieceColor colour);
 
     // Checks if the given move is on the board
     bool isPossibleMove(const std::string& move);
@@ -44,7 +45,7 @@ public:
 
     bool is_square_empty(const std::string &square);
 
-    void calculateAllLegalMovesByColour(int colour);
+    void calculateAllLegalMovesByColour(PieceColor colour);
 
     // Creates a piece and adds it to the board square and piece list
     void addPieceToBoard(PieceType type, PieceColor colour, const std::string &square, const Texture2D &texture);
@@ -59,14 +60,14 @@ public:
     std::vector<std::string> enpassantSquares = {};
 
     [[nodiscard]]
-    bool isColourChecked(int colour) const;
+    bool isColourChecked(PieceColor colour) const;
 
-    Piece* getKingByColor(int colour) const;
+    Piece* getKingByColor(PieceColor colour) const;
 
-    size_t getLegalMoveCount(int colour) const;
+    size_t getLegalMoveCount(PieceColor colour) const;
 
     // Gets all the attacked squares for a colour
-    std::vector<std::string> attackedSquaresOfColor(int colour);
+    std::vector<std::string> attackedSquaresOfColor(PieceColor colour);
 };
 
 #endif //CHESSBOT_BOARD_H
