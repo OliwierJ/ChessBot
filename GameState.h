@@ -16,13 +16,7 @@ public:
     GameStatus state = GameStatus::Normal;
     std::optional<PieceColor> winner;
     bool bot_game = true;
-    Board* board;
     MoveHistory move_history;
-    bool pieceTaken = false;
-    bool pawnPromoted = false;
-    bool shortCastled = false;
-    bool longCastled = false;
-    bool illegalMove = false;
 };
 
 

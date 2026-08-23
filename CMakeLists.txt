@@ -5,7 +5,11 @@ set(CMAKE_CXX_STANDARD 23)
 set(PROJECT_NAME ChessBot)
 set(RAYLIB_VERSION 5.5)
 
-set(EMBEDDED_RESOURCES_HEADER "${CMAKE_CURRENT_BINARY_DIR}/embedded_resources.h")
+set(EMBEDDED_RESOURCES_HEADER "${CMAKE_CURRENT_BINARY_DIR}/embedded_resources.h"
+        ChessGame.cpp
+        ChessGame.h
+        SoundManager.cpp
+        SoundManager.h)
 set(RESOURCE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/resources/move-check.wav"
         "${CMAKE_CURRENT_SOURCE_DIR}/resources/move-self.wav"
