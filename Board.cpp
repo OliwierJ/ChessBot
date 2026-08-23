@@ -175,3 +175,10 @@ std::vector<std::string> Board::attackedSquaresOfColor(const PieceColor colour) 
     }
     return allAttackedSquares;
 }
+
+void Board::addBothKings() {
+    addPieceToBoard(PieceType::King, PieceColor::Black, "E1", {200, 200});
+    whiteKing = &pieceList.back();
+    addPieceToBoard(PieceType::King, PieceColor::White, "E8", {200, 200});
+    blackKing = &pieceList.back();
+}

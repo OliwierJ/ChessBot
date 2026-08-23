@@ -193,6 +193,6 @@ MoveOutcome MoveValidator::apply_move(Piece& currentPiece, Board& board, BoardSq
         board.whiteIsChecked = std::ranges::count(temp, board.whiteKing->square->name) >= 1;
         move_outcome.check = board.whiteIsChecked;
     }
-
+    move_outcome.validMove = true;
     return move_outcome;
 }

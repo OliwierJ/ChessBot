@@ -43,6 +43,40 @@ if (NOT raylib_FOUND)
     FetchContent_MakeAvailable(raylib)
 endif ()
 
+find_package(Catch2 QUIET)
+if (NOT Catch2_FOUND)
+    include(CTest)
+    include(FetchContent)
+
+    FetchContent_Declare(
+            Catch2
+            GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+            GIT_TAG v3.8.1
+    )
+
+    FetchContent_MakeAvailable(Catch2)
+endif ()
+
+add_executable(ChessBotTests
+        tests/BoardTests.cpp
+        Board.cpp
+        BoardSquare.cpp
+        Piece.cpp
+        MoveValidator.cpp
+        ChessGame.cpp
+        MoveHistory.cpp
+        tests/ChessGameTests.cpp
+)
+
+target_link_libraries(ChessBotTests
+        PRIVATE
+        raylib
+        Catch2::Catch2WithMain
+)
+
+include(Catch)
+catch_discover_tests(ChessBotTests)
+
 add_executable(${PROJECT_NAME} main.cpp
         Piece.h
         BoardSquare.cpp

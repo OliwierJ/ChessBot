@@ -68,6 +68,8 @@ public:
 
     // Gets all the attacked squares for a colour
     std::vector<std::string> attackedSquaresOfColor(PieceColor colour);
+
+    void addBothKings();
 };
 
 #endif //CHESSBOT_BOARD_H
