@@ -10,4 +10,7 @@ void GameState::reset_state() {
     winner = std::nullopt;
     move_history.clear_history();
     evaluation = 0;
+    turn_counter = 1;
+    last_pawn_or_capture = 1;
+
 }

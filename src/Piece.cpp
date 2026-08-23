@@ -113,9 +113,11 @@ void Piece::remove_moves_leading_to_checks(Board *board) {
             };
 
             possibleMovableSquaresPiece = board->squares[enpassantSquare].piece;
-            board->squares[enpassantSquare].piece->captured = true;
-            board->squares[enpassantSquare].piece = nullptr;
-            enpassantTaken = true;
+            if (board->squares[enpassantSquare].piece) {
+                board->squares[enpassantSquare].piece->captured = true;
+                board->squares[enpassantSquare].piece = nullptr;
+                enpassantTaken = true;
+            }
         } else {
             possibleMovableSquaresPiece = board->squares[*movesIterator].piece;
             if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->captured = true;

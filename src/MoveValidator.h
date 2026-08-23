@@ -13,6 +13,7 @@ struct MoveOutcome {
     bool validMove = false;
     bool pieceTaken = false;
     bool pawnPromoted = false;
+    bool pawnMoved = false;
     bool shortCastled = false;
     bool longCastled = false;
     bool check = false;

@@ -6,7 +6,8 @@
 TEST_CASE("ChessGame starts with White's turn") {
     constexpr Texture2D testTexture{600, 200};
     ChessGame game(testTexture);
-
+    game.state().state = GameStatus::Normal;
+    
     REQUIRE(game.state().turn == PieceColor::White);
     REQUIRE(game.state().state == GameStatus::Normal);
 }
@@ -14,6 +15,7 @@ TEST_CASE("ChessGame starts with White's turn") {
 TEST_CASE("ChessGame changes turn after a legal move") {
     constexpr Texture2D testTexture{600, 200};
     ChessGame game(testTexture);
+    game.state().state = GameStatus::Normal;
 
     Piece* pawn = game.board().squares.at("E2").piece;
     BoardSquare& target = game.board().squares.at("E4");

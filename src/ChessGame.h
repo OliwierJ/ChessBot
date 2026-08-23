@@ -45,7 +45,7 @@ private:
         MoveOutcome outcome
     );
 
-    void update_game_status();
+    void update_game_status(MoveOutcome outcome);
 
     [[nodiscard]]
     std::string create_notation(

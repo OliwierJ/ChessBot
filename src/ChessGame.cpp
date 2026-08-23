@@ -80,15 +80,27 @@ void ChessGame::complete_move(const Piece &piece, const BoardSquare &target, con
 
     gameState.move_history.append_move(notation);
 
-    update_game_status();
+    // update turn counts and game end flags
+    update_game_status(outcome);
 
+    // swap turn colour
     if (gameState.state == GameStatus::Normal) {
         gameState.turn = opposite(gameState.turn);
     }
 
 }
 
-void ChessGame::update_game_status() {
+void ChessGame::update_game_status(const MoveOutcome outcome) {
+
+    // increment turn count on blacks move
+    if (gameState.turn == PieceColor::Black) gameState.turn_counter++;
+
+    // check if 50 moves since a pawn move or capture
+    if (gameState.turn_counter - gameState.last_pawn_or_capture >= 50) {
+        gameState.state = GameStatus::Stalemate; return;
+    }
+
+    if (outcome.pieceTaken || outcome.pawnMoved) gameState.last_pawn_or_capture = gameState.turn_counter;
     const PieceColor opponent = opposite(gameState.turn);
     const bool checked = gameBoard.isColourChecked(opponent);
     const bool hasLegalMoves =
