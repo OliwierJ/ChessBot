@@ -3,7 +3,6 @@
 //
 
 #include "SoundManager.h"
-
 #include "ChessGame.h"
 #include "embedded_resources.h"
 

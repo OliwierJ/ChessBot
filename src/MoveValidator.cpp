@@ -3,7 +3,6 @@
 //
 
 #include "MoveValidator.h"
-
 #include "Piece.h"
 #include "Board.h"
 

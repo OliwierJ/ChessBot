@@ -6,10 +6,10 @@ set(PROJECT_NAME ChessBot)
 set(RAYLIB_VERSION 5.5)
 
 set(EMBEDDED_RESOURCES_HEADER "${CMAKE_CURRENT_BINARY_DIR}/embedded_resources.h"
-        ChessGame.cpp
-        ChessGame.h
-        SoundManager.cpp
-        SoundManager.h)
+        src/ChessGame.cpp
+        src/ChessGame.h
+        src/SoundManager.cpp
+        src/SoundManager.h)
 set(RESOURCE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/resources/move-check.wav"
         "${CMAKE_CURRENT_SOURCE_DIR}/resources/move-self.wav"
@@ -59,12 +59,12 @@ endif ()
 
 add_executable(ChessBotTests
         tests/BoardTests.cpp
-        Board.cpp
-        BoardSquare.cpp
-        Piece.cpp
-        MoveValidator.cpp
-        ChessGame.cpp
-        MoveHistory.cpp
+        src/Board.cpp
+        src/BoardSquare.cpp
+        src/Piece.cpp
+        src/MoveValidator.cpp
+        src/ChessGame.cpp
+        src/MoveHistory.cpp
         tests/ChessGameTests.cpp
 )
 
@@ -77,19 +77,19 @@ target_link_libraries(ChessBotTests
 include(Catch)
 catch_discover_tests(ChessBotTests)
 
-add_executable(${PROJECT_NAME} main.cpp
-        Piece.h
-        BoardSquare.cpp
-        BoardSquare.h
-        Board.cpp
-        Board.h
-        Piece.cpp
-        GameState.cpp
-        GameState.h
-        MoveHistory.cpp
-        MoveHistory.h
-        MoveValidator.cpp
-        MoveValidator.h
+add_executable(${PROJECT_NAME} src/main.cpp
+        src/Piece.h
+        src/BoardSquare.cpp
+        src/BoardSquare.h
+        src/Board.cpp
+        src/Board.h
+        src/Piece.cpp
+        src/GameState.cpp
+        src/GameState.h
+        src/MoveHistory.cpp
+        src/MoveHistory.h
+        src/MoveValidator.cpp
+        src/MoveValidator.h
         "${EMBEDDED_RESOURCES_HEADER}"
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

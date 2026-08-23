@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "../Board.h"
-#include "../Piece.h"
-#include "../MoveValidator.h"
+#include "../src/Board.h"
+#include "../src/Piece.h"
+#include "../src/MoveValidator.h"
 
 TEST_CASE("A new board contains all starting pieces") {
     Texture2D testTexture{600, 200};

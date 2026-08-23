@@ -3,9 +3,7 @@
 //
 
 #include "MoveHistory.h"
-
 #include <iostream>
-
 #include "raylib.h"
 
 void MoveHistory::draw() const {
