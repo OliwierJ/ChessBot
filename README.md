@@ -1,65 +1,82 @@
 # ChessBot
 
-ChessBot is a C++23 chess prototype built with [raylib](https://www.raylib.com/). The codebase focuses on an interactive board, robust move generation, and a compact game-state system for local play.
+ChessBot is a local C++23 chess game built with [raylib](https://www.raylib.com/). It provides a graphical board, legal move validation, move history, sound effects, and a simple random-move opponent.
 
-## Current Progress
+## Features
 
-The project has progressed from a visual board to a lightweight rules-capable game. Key implemented features:
+- Drag-and-drop play on a rendered 8x8 board.
+- Legal move generation for all standard pieces.
+- Turn enforcement and rejection of moves that leave the moving side's king in check.
+- Captures, en passant, king-side castling, and queen-side castling.
+- Automatic pawn promotion to a queen.
+- Check, checkmate, and stalemate detection.
+- Move history displayed in the game window using compact algebraic-style notation.
+- Audio feedback for moves, captures, checks, illegal moves, promotion, and game end.
+- Human White versus a random-move Black bot by default.
 
-- Full 8x8 board rendering and coordinate mapping.
-- Piece rendering from a sprite sheet and drag-and-drop interaction.
-- Legal move generation for pawns, knights, bishops, rooks, queens and kings.
-- Capture handling and taken-state tracking.
-- Turn-based play with white/black switching.
-- Check detection: moves that leave a king in check are rejected.
-- En passant support: capture squares are tracked and applied when valid.
-- Castling: king-side and queen-side moves are handled (with rook relocation).
-- Pawn promotion: basic promotion to queen.
-- Endgame detection: checkmate and stalemate are detected and set the `GameState`.
-- Audio feedback: sounds for move, capture, check, illegal move, promotion, and game end.
+## Requirements
 
-## Project Structure
+- CMake 4.0 or newer.
+- A C++ compiler with C++23 support.
+- Git, for CMake's `FetchContent` fallback.
+- An audio-capable desktop environment.
 
-- `main.cpp`: game loop, input handling, `checkDropPosition`, game-state transitions, audio lifecycle.
-- `Board.h` / `Board.cpp`: board model, square lookup, legal-move orchestration, and helpers.
-- `Piece.h` / `Piece.cpp`: piece state, move generation, promotion, and king-attacked helpers.
-- `BoardSquare.h` / `BoardSquare.cpp`: per-square container and name/rectangle mapping.
-- `GameState.h` / `GameState.cpp`: simple game-state enum and winner tracking.
-- `CMakeLists.txt`: build configuration (C++23, fetches raylib if missing).
+raylib 5.5 and Catch2 3.8.1 are fetched automatically when they are not already available to CMake.
 
-## What Is Working
-
-1. Pieces render and can be picked up, dragged, and dropped.
-2. Move generation enforces standard movement rules and displays legal targets.
-3. Illegal moves that would leave a king in check are rejected.
-4. En passant, castling, and basic pawn promotion are supported.
-5. Checkmate and stalemate are detected via legal-move counts and check state.
-6. Audio events play for moves, captures, checks, promotions, illegal attempts, and game end.
-7. End-game overlay displays winner or stalemate messages.
-
-## Known Gaps & Notes
-
-- Promotion currently auto-promotes to queen via `try_promote()`; a promotion UI is not implemented.
-- The rules engine is functional but not exhaustively tested; edge cases could remain.
-- No way to scroll up through the moves in the moves history
 ## Build
 
-The project uses CMake and targets C++23. If `raylib` is not installed locally, CMake will fetch it.
-
-Typical build flow:
+From the repository root:
 
 ```bash
 cmake -S . -B build
 cmake --build build
 ```
 
+The build produces two executables:
+
+- `ChessBot`: the graphical game.
+- `ChessBotTests`: the Catch2 test suite.
+
+The configure step embeds the sprite sheet and audio files from `resources/` into generated C++ data. The source `resources/` directory is therefore not required when running an already-built executable.
+
 ## Run
 
-After building, run the executable from the build folder. The program opens a 1150x750 window and includes an audio device. Audio and image resources are embedded into the executable during the CMake configure step, so the `resources/` directory is not needed at runtime.
+Run `ChessBot` from the build directory. The game opens a 1150x750 window. Pick up a piece with the left mouse button, move it over a highlighted legal square, and release it. White is controlled by the player; Black makes a randomly selected legal move after White's turn.
 
-## Next Steps
+## Test
 
-1. Add a promotion selection UI to allow choosing the promoted piece.
-2. Allow the ability to select between two-player and a bot game.
-3. Create a game start and game reset screen.
-4. Eventually add logic to the bot.
+Run the tests with CTest:
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+The tests cover board setup, piece movement, captures, check restrictions, and basic game-turn behavior. The rules engine is not exhaustively tested, so unusual positions may still expose edge cases.
+
+## Project Structure
+
+- `src/main.cpp`: raylib window, input loop, rendering, bot turn, and audio lifecycle.
+- `src/ChessGame.*`: turn handling, move orchestration, notation, and end-game status.
+- `src/Board.*`: board model, square lookup, legal-move calculation, and board rendering.
+- `src/Piece.*`: piece state, movement generation, promotion, and attack helpers.
+- `src/MoveValidator.*`: legal-move checks and move application.
+- `src/BoardSquare.*`: square coordinates, rectangles, and occupied-piece state.
+- `src/MoveHistory.*`: move storage and on-screen history rendering.
+- `src/GameState.*`: turn, game status, winner, and bot-mode state.
+- `src/SoundManager.*`: embedded sound loading and playback.
+- `tests/`: Catch2 unit tests.
+- `resources/`: the sprite sheet and sound effects embedded at configure time.
+
+## Known Limitations
+
+- Promotion always selects a queen; there is no promotion-choice UI.
+- The bot chooses moves randomly and has no search or position evaluation.
+- The game is configured for bot mode by default; there is no start screen or two-player mode selector.
+- The move history displays a moving window and cannot be scrolled manually.
+- The end-game overlay displays a `Restart` control, but restarting is not wired up yet.
+
+## Roadmap
+
+1. Add game reset and a start screen.
+2. Add a two-player mode selector.
+3. Replace random bot moves with search and position evaluation.
