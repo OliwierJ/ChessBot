@@ -8,15 +8,18 @@
 #include <optional>
 #include "Board.h"
 
-enum class GameStatus {Normal, Checkmate, Stalemate};
+enum class GameStatus {Menu, Normal, Checkmate, Stalemate};
 
 class GameState {
 public:
     PieceColor turn = PieceColor::White;
-    GameStatus state = GameStatus::Normal;
+    GameStatus state = GameStatus::Menu;
     std::optional<PieceColor> winner;
     bool bot_game = true;
     MoveHistory move_history;
+
+    void reset_state();
+
 };
 
 

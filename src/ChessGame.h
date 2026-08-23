@@ -4,10 +4,13 @@
 
 #ifndef CHESSBOT_CHESSGAME_H
 #define CHESSBOT_CHESSGAME_H
+#include <optional>
 #include <string>
+
 #include "Board.h"
 #include "GameState.h"
 #include "MoveValidator.h"
+#include "raylib.h"
 
 class GameState;
 class Board;
@@ -28,6 +31,8 @@ public:
     Board &board();
 
     GameState &state();
+
+    void restart_game(const Texture2D &pieceTexture);
 
 private:
     Board gameBoard;

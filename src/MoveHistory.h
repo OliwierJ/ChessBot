@@ -21,6 +21,8 @@ public:
     void append_move(const std::string &notation);
 
     void print_history() const;
+
+    void clear_history();
 };
 
 

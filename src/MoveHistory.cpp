@@ -43,8 +43,12 @@ void MoveHistory::append_move(const std::string &notation) {
 
 void MoveHistory::print_history() const {
     std::cout << "Move List: \n";
-    for (auto move : movesList) {
+    for (const auto& move : movesList) {
         std::cout << move << " ";
     }
     std::cout << "\n";
+}
+
+void MoveHistory::clear_history() {
+    movesList.clear();
 }

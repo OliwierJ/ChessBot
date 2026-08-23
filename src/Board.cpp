@@ -21,6 +21,24 @@ Board::Board() {
     }
 }
 
+Board::~Board() {
+    for (auto &[square_str, square] : squares) {
+        square.piece = nullptr;
+    }
+}
+
+void Board::clear_board() {
+    for (auto &[square_str, square] : squares) {
+        square.piece = nullptr;
+    }
+
+    whiteKing = nullptr;
+    blackKing = nullptr;
+    whiteIsChecked = false;
+    blackIsChecked = false;
+    pieceList.clear();
+}
+
 void Board::Draw() {
     for (int i = 1; i <= 8; i++) {
         for (int j = 1; j <= 8; j++) {

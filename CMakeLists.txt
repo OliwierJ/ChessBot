@@ -65,6 +65,7 @@ add_executable(ChessBotTests
         src/MoveValidator.cpp
         src/ChessGame.cpp
         src/MoveHistory.cpp
+        src/GameState.cpp
         tests/ChessGameTests.cpp
 )
 

@@ -31,6 +31,10 @@ public:
     // Board constructor. Initialises the board squares
     Board();
 
+    ~Board();
+
+    void clear_board();
+
     // Draw the board itself
     static void Draw();
 

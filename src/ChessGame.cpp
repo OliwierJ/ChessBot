@@ -2,11 +2,11 @@
 // Created by papie on 22/08/2026.
 //
 
-#include "ChessGame.h"
-
 #include <thread>
-
+#include "ChessGame.h"
 #include "Board.h"
+#include "GameState.h"
+#include "MoveValidator.h"
 
 
 ChessGame::ChessGame(const Texture2D &piecesTexture) {
@@ -66,6 +66,12 @@ Board &ChessGame::board() {
 
 GameState &ChessGame::state() {
     return gameState;
+}
+
+void ChessGame::restart_game(const Texture2D &pieceTexture) {
+    gameBoard.clear_board();
+    gameBoard.set_up_pieces(pieceTexture);
+    gameState.reset_state();
 }
 
 void ChessGame::complete_move(const Piece &piece, const BoardSquare &target, const std::string &previousPosition,

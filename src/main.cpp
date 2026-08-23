@@ -39,14 +39,13 @@ void check_drop_position(Piece *&currentPiece, ChessGame &game) {
     currentPiece->reset_position();
 }
 
-
-void DrawEndGameState(const GameState &game, const Board &board, const Texture2D &piecesTexture) {
-    for (auto &p: board.pieceList) {
+void DrawEndGameState(ChessGame &game, const Texture2D &piecesTexture, const Vector2 mouse) {
+    for (auto &p: game.board().pieceList) {
         p.Draw(piecesTexture);
     }
     DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, {100, 100, 100, 150});
-    if (game.state == GameStatus::Checkmate) {
-        const std::string text = game.winner == PieceColor::White ? "White wins!" : "Black wins!";
+    if (game.state().state == GameStatus::Checkmate) {
+        const std::string text = game.state().winner == PieceColor::White ? "White wins!" : "Black wins!";
         DrawText("Checkmate!", 300, 300, 30, WHITE);
         DrawText(text.c_str(), 300, 330, 30, WHITE);
     } else {
@@ -56,6 +55,44 @@ void DrawEndGameState(const GameState &game, const Board &board, const Texture2D
     DrawRectangle(260, 380, 225, 60, BLACK);
     DrawRectangle(265, 385, 215, 50, WHITE);
     DrawText("Restart", 325, 400, 28, BLACK);
+
+    if (CheckCollisionPointRec(mouse, {260, 380, 225, 60}) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        game.restart_game(piecesTexture);
+    }
+}
+
+void DrawButton(const Rectangle rect, const Color color, const char* text) {
+    constexpr int font_size = 25;
+    constexpr int border = 5;
+    const auto [x, y] = MeasureTextEx(GetFontDefault(), text, font_size, 0);
+    DrawRectangle(rect.x, rect.y, rect.width, rect.height, color);
+    DrawRectangle(rect.x + border, rect.y + border, rect.width - border*2, rect.height - border*2, color);
+    const Vector2 button_center = {rect.x + rect.width / 2, rect.y + rect.height / 2};
+    const Vector2 text_point = {button_center.x - x / 2, button_center.y - y / 2};
+    DrawText(text, text_point.x, text_point.y, font_size, BLACK);
+}
+
+void render_menu(ChessGame& game, const Vector2 mouse) {
+    constexpr int button_w = 250;
+    constexpr int button_y = 300;
+    constexpr int bot_button_y = 400;
+    constexpr int button_h = 50;
+    constexpr Rectangle two_player_btn = {WINDOW_WIDTH / 2 - button_w / 2, button_y, button_w, button_h};
+    constexpr Rectangle bot_game = {WINDOW_WIDTH / 2 - button_w / 2, bot_button_y, button_w, button_h};
+
+    DrawButton(two_player_btn, WHITE, "Two player");
+    DrawButton(bot_game, WHITE, "Bot game");
+
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+        if (CheckCollisionPointRec(mouse, two_player_btn)) {
+            game.state().bot_game = false;
+            game.state().state = GameStatus::Normal;
+        }
+        if (CheckCollisionPointRec(mouse, bot_game)) {
+            game.state().bot_game = true;
+            game.state().state = GameStatus::Normal;
+        }
+    }
 }
 
 int main() {
@@ -75,20 +112,28 @@ int main() {
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(DARKBROWN);
+
+        // Get input from user
+        const Vector2 mouse = GetMousePosition();
+
+        if (game.state().state == GameStatus::Menu) {
+            render_menu(game, mouse);
+            EndDrawing();
+            continue;
+        }
         Board::Draw();
 
         // Move history
         game.state().move_history.draw();
 
+
         // Game end loop
         if (game.state().state == GameStatus::Checkmate || game.state().state == GameStatus::Stalemate) {
-            DrawEndGameState(game.state(), game.board(), piecesTexture);
+            DrawEndGameState(game, piecesTexture, mouse);
             EndDrawing();
             continue;
         }
 
-        // Get input from user
-        const Vector2 mouse = GetMousePosition();
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             for (auto &p: game.board().pieceList) {
