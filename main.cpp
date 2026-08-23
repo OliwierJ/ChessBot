@@ -17,10 +17,9 @@ auto TITLE = "Chess";
 constexpr int WINDOW_WIDTH = 1150;
 constexpr int WINDOW_HEIGHT = 750;
 
-void check_drop_position(Piece *&currentPiece, ChessGame& game) {
+void check_drop_position(Piece *&currentPiece, ChessGame &game) {
     if (currentPiece == nullptr) return;
 
-    bool foundValidMove = false;
     const std::string previousPosition = currentPiece->square->name;
 
     for (auto &[current_square, square]: game.board().squares) {
@@ -29,19 +28,17 @@ void check_drop_position(Piece *&currentPiece, ChessGame& game) {
         }
 
         if (const auto move_result = game.try_move(*currentPiece, square)) {
-            foundValidMove = true;
             SoundManager::play_move_sound(game, move_result.value());
+            currentPiece = nullptr;
+        } else {
+            currentPiece->reset_position();
         }
-        break;
+        return;
     }
 
-    if (!foundValidMove) {
-        currentPiece->setCurrentPos({currentPiece->lastPosition.x, currentPiece->lastPosition.y});
-        game.board().calculateAllLegalMovesByColour(game.state().turn);
-    } else {
-        currentPiece = nullptr;
-    }
+    currentPiece->reset_position();
 }
+
 
 void DrawEndGameState(const GameState &game, const Board &board, const Texture2D &piecesTexture) {
     for (auto &p: board.pieceList) {

@@ -359,6 +359,10 @@ void Piece::Draw(const Texture2D &piecesTexture) const {
     }
 }
 
+void Piece::reset_position() {
+    setCurrentPos({square->squareBox.x, square->squareBox.y});
+}
+
 [[nodiscard]]
 Vector2 Piece::getCurrentPos() const {
     return {boundingBox.x, boundingBox.y};

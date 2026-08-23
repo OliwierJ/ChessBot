@@ -63,6 +63,8 @@ public:
 
     void Draw(const Texture2D &piecesTexture) const;
 
+    void reset_position();
+
     [[nodiscard]]
     Vector2 getCurrentPos() const;
 

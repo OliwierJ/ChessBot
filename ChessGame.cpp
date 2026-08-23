@@ -113,7 +113,7 @@ std::string ChessGame::create_notation(const Piece &piece, const BoardSquare &ta
         move_notation = {piece.getPieceNotation(), move_notation[0], move_notation[1]};
     }
 
-    if (gameBoard.isColourChecked(gameState.turn) && gameState.state != GameStatus::Checkmate) move_notation += '+';
+    if (gameBoard.isColourChecked(opposite(gameState.turn)) && gameState.state != GameStatus::Checkmate) move_notation += '+';
     if (gameState.state == GameStatus::Checkmate) move_notation += '#';
 
     return move_notation;
