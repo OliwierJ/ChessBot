@@ -38,6 +38,8 @@ public:
     // Draw the board itself
     static void Draw();
 
+    void draw_taken_material(const Texture2D &texture) const;
+
     // Draws the move circle for a legal move
     void drawLegalMove(const std::string &notation, PieceColor colour);
 

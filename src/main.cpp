@@ -122,10 +122,10 @@ int main() {
             continue;
         }
         Board::Draw();
+        game.board().draw_taken_material(piecesTexture);
 
         // Move history
         game.state().move_history.draw();
-
 
         // Game end loop
         if (game.state().state == GameStatus::Checkmate || game.state().state == GameStatus::Stalemate) {
@@ -136,6 +136,7 @@ int main() {
 
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            std::cout << "X: " << mouse.x << "Y: " << mouse.y << "\n";
             for (auto &p: game.board().pieceList) {
                 if (p.captured) continue;
                 if (game.state().turn != p.colour) continue;

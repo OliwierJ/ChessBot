@@ -46,6 +46,9 @@ public:
     std::vector<std::string> legalMoves;
     std::vector<std::string> attackingSquares;
     PieceType type;
+    int value;
+
+    static int getMaterialValue(PieceType type);
 
     Piece(PieceType type, PieceColor pieceColour, BoardSquare &square, const Texture2D &texture);
 

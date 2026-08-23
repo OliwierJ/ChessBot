@@ -9,4 +9,5 @@ void GameState::reset_state() {
     state = GameStatus::Normal;
     winner = std::nullopt;
     move_history.clear_history();
+    evaluation = 0;
 }

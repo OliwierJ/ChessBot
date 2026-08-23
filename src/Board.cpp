@@ -22,13 +22,13 @@ Board::Board() {
 }
 
 Board::~Board() {
-    for (auto &[square_str, square] : squares) {
+    for (auto &[square_str, square]: squares) {
         square.piece = nullptr;
     }
 }
 
 void Board::clear_board() {
-    for (auto &[square_str, square] : squares) {
+    for (auto &[square_str, square]: squares) {
         square.piece = nullptr;
     }
 
@@ -54,6 +54,42 @@ void Board::Draw() {
         DrawText(std::to_string(abs(i - 9)).c_str(), 60, (SQUARE_SIZE * i) + 30, 16, WHITE);
     }
 }
+
+void Board::draw_taken_material(const Texture2D &texture) const {
+    constexpr Vector2 white_taken = {80, 40};
+    constexpr Vector2 black_taken = {80, 700};
+    int white_taken_idx = 0;
+    int black_taken_idx = 0;
+    int white_material_taken = 0;
+    int black_material_taken = 0;
+    int gap = 20;
+
+    for (int i = 0; i < pieceList.size(); i++) {
+        const Piece piece = pieceList.at(i);
+        if (piece.captured) {
+            // if (i > 0 && piece.type == pieceList.at(i-1).type) gap = 10;
+
+            if (piece.colour == PieceColor::White) {
+                black_material_taken += piece.value;
+                DrawTexturePro(texture, piece.pieceTexture,
+                               {white_taken.x + gap * white_taken_idx, white_taken.y, 25, 25}, {0, 0}, 0, WHITE);
+                white_taken_idx++;
+            } else {
+                DrawTexturePro(texture, piece.pieceTexture,
+                               {black_taken.x + gap * black_taken_idx, black_taken.y, 25, 25}, {0, 0}, 0, WHITE);
+                white_material_taken += piece.value;
+                black_taken_idx++;
+            }
+        }
+    }
+    const int white_advantage = white_material_taken - black_material_taken;
+    const int black_advantage = black_material_taken - white_material_taken;
+    const std::string white_text = "+" + std::to_string(white_advantage);
+    const std::string black_text = "+" + std::to_string(black_advantage);
+    if (white_advantage > 0) DrawText(white_text.c_str(), black_taken.x + gap * black_taken_idx, black_taken.y + 5, 20, WHITE);
+    if (black_advantage > 0) DrawText(black_text.c_str(), white_taken.x + gap * white_taken_idx, white_taken.y + 5, 20, WHITE);
+}
+
 
 void Board::drawLegalMove(const std::string &notation, const PieceColor colour) {
     const auto [x, y, width, height] = squares[notation].squareBox;
@@ -114,15 +150,15 @@ void Board::set_up_pieces(const Texture2D &piecesTexture) {
     addPieceToBoard(PieceType::Pawn, PieceColor::White, "F2", piecesTexture);
     addPieceToBoard(PieceType::Pawn, PieceColor::White, "G2", piecesTexture);
     addPieceToBoard(PieceType::Pawn, PieceColor::White, "H2", piecesTexture);
-    addPieceToBoard(PieceType::Rook, PieceColor::White, "A1", piecesTexture);
     addPieceToBoard(PieceType::Knight, PieceColor::White, "B1", piecesTexture);
+    addPieceToBoard(PieceType::Knight, PieceColor::White, "G1", piecesTexture);
     addPieceToBoard(PieceType::Bishop, PieceColor::White, "C1", piecesTexture);
+    addPieceToBoard(PieceType::Bishop, PieceColor::White, "F1", piecesTexture);
+    addPieceToBoard(PieceType::Rook, PieceColor::White, "A1", piecesTexture);
+    addPieceToBoard(PieceType::Rook, PieceColor::White, "H1", piecesTexture);
     addPieceToBoard(PieceType::Queen, PieceColor::White, "D1", piecesTexture);
     addPieceToBoard(PieceType::King, PieceColor::White, "E1", piecesTexture);
     whiteKing = &pieceList.back();
-    addPieceToBoard(PieceType::Bishop, PieceColor::White, "F1", piecesTexture);
-    addPieceToBoard(PieceType::Knight, PieceColor::White, "G1", piecesTexture);
-    addPieceToBoard(PieceType::Rook, PieceColor::White, "H1", piecesTexture);
     // Black Pieces
     addPieceToBoard(PieceType::Pawn, PieceColor::Black, "A7", piecesTexture);
     addPieceToBoard(PieceType::Pawn, PieceColor::Black, "B7", piecesTexture);
@@ -132,15 +168,15 @@ void Board::set_up_pieces(const Texture2D &piecesTexture) {
     addPieceToBoard(PieceType::Pawn, PieceColor::Black, "F7", piecesTexture);
     addPieceToBoard(PieceType::Pawn, PieceColor::Black, "G7", piecesTexture);
     addPieceToBoard(PieceType::Pawn, PieceColor::Black, "H7", piecesTexture);
-    addPieceToBoard(PieceType::Rook, PieceColor::Black, "A8", piecesTexture);
     addPieceToBoard(PieceType::Knight, PieceColor::Black, "B8", piecesTexture);
+    addPieceToBoard(PieceType::Knight, PieceColor::Black, "G8", piecesTexture);
+    addPieceToBoard(PieceType::Bishop, PieceColor::Black, "F8", piecesTexture);
     addPieceToBoard(PieceType::Bishop, PieceColor::Black, "C8", piecesTexture);
+    addPieceToBoard(PieceType::Rook, PieceColor::Black, "A8", piecesTexture);
+    addPieceToBoard(PieceType::Rook, PieceColor::Black, "H8", piecesTexture);
     addPieceToBoard(PieceType::Queen, PieceColor::Black, "D8", piecesTexture);
     addPieceToBoard(PieceType::King, PieceColor::Black, "E8", piecesTexture);
     blackKing = &pieceList.back();
-    addPieceToBoard(PieceType::Bishop, PieceColor::Black, "F8", piecesTexture);
-    addPieceToBoard(PieceType::Knight, PieceColor::Black, "G8", piecesTexture);
-    addPieceToBoard(PieceType::Rook, PieceColor::Black, "H8", piecesTexture);
 
 
     for (auto &p: pieceList) {

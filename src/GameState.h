@@ -13,11 +13,12 @@ enum class GameStatus {Menu, Normal, Checkmate, Stalemate};
 class GameState {
 public:
     PieceColor turn = PieceColor::White;
+    int turn_number = 1;
     GameStatus state = GameStatus::Menu;
     std::optional<PieceColor> winner;
     bool bot_game = true;
     MoveHistory move_history;
-
+    float evaluation = 0;
     void reset_state();
 
 };
