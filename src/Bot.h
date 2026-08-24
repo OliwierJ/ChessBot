@@ -28,9 +28,9 @@ public:
 
     static std::optional<MoveOutcome> perform_bot_move(ChessGame &game);
 
-    static std::optional<BotMove> choose_move(const Board &board, GameState &state, int depth);
+    static std::optional<BotMove> choose_move(const Board &board, GameState &state, int depth, float alpha, float beta);
 
-    static float minimax(const Board &board, const GameState &state, int depth);
+    static float minimax(const Board &board, const GameState &state, int depth, float alpha, float beta);
 };
 
 

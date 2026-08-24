@@ -201,7 +201,7 @@ int main() {
                 std::launch::async,
                 [board = std::move(board_snapshot),
                     state = std::move(state_snapshot)] mutable {
-                    return Bot::choose_move(board, state, 3);
+                    return Bot::choose_move(board, state, 3, std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
                 }
             );
         }

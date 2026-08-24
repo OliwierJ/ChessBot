@@ -29,6 +29,16 @@ std::vector<BotMove> Bot::get_legal_moves(const PieceColor colour, const Board &
             legal_moves.push_back(bot_move);
         }
     }
+
+    std::ranges::sort(legal_moves, [&](const BotMove& left, const BotMove& right) {
+        const auto* left_piece = board.squares.at(left.target).piece;
+        const auto* right_piece = board.squares.at(right.target).piece;
+
+        const int left_value = left_piece == nullptr ? 0 : left_piece->value;
+        const int right_value = right_piece == nullptr ? 0 : right_piece->value;
+
+        return left_value > right_value;
+    });
     return legal_moves;
 }
 
@@ -57,16 +67,16 @@ float Bot::calculate_position(const Board &board, const GameState &state) {
         float square_control = 0;
         for (auto m: piece.attackingSquares) {
             if (std::ranges::count(central_squares, m)) {
-                square_control += 0.015;
+                square_control += 0.018;
             } else {
-                square_control += 0.005;
+                square_control += 0.002;
             }
         }
         if (std::ranges::count(central_squares, piece.square->name)) {
             square_control += 0.01;
         }
 
-        if (piece.hasMoved && piece.type != PieceType::King) {
+        if (piece.hasMoved && piece.type != PieceType::King && piece.type != PieceType::Queen) {
             score += piece.colour == PieceColor::White ? 0.01 : -0.01;
         }
         if (piece.hasMoved && piece.type == PieceType::King) {
@@ -81,9 +91,6 @@ float Bot::calculate_position(const Board &board, const GameState &state) {
     if (state.white_castled) {
         score += 0.5;
     }
-
-    // checkmates
-    // center control
 
     return score;
 }
@@ -157,9 +164,8 @@ std::optional<MoveOutcome> Bot::perform_bot_move(ChessGame &game) {
     return game.try_move(*game.board().squares.at(from).piece, game.board().squares[target]);
 }
 
-std::optional<BotMove> Bot::choose_move(const Board &board, GameState &state, int depth) {
-    Board search_board = board;
-    const auto legal_moves = get_legal_moves(state.turn, search_board);
+std::optional<BotMove> Bot::choose_move(const Board &board, GameState &state, int depth, float alpha, float beta) {
+    const auto legal_moves = get_legal_moves(state.turn, board);
 
     if (legal_moves.empty()) {
         return std::nullopt;
@@ -178,21 +184,20 @@ std::optional<BotMove> Bot::choose_move(const Board &board, GameState &state, in
 
         Piece *piece = simulated_game.board().squares.at(move.from).piece;
 
-        BoardSquare &target =
-                simulated_game.board().squares.at(move.target);
+        BoardSquare &target = simulated_game.board().squares.at(move.target);
 
         if (!simulated_game.try_move(*piece, target)) {
             continue;
         }
 
-        const float score = minimax(simulated_game.board(), simulated_game.state(), depth - 1);
+        const float score = minimax(simulated_game.board(), simulated_game.state(), depth - 1, alpha, beta);
 
         const bool better =
                 state.turn == PieceColor::Black
                     ? score < best_score
                     : score > best_score;
 
-        all_moves.push_back({move, score});
+        all_moves.emplace_back(move, score);
 
         if (better) {
             best_score = score;
@@ -210,7 +215,7 @@ std::optional<BotMove> Bot::choose_move(const Board &board, GameState &state, in
     std::ranges::sort(all_moves,
         [](const std::pair<BotMove, float>& a, const std::pair<BotMove, float>& b) {
       return a.second < b.second;
-  });
+    });
 
     for (auto m : all_moves) {
         std::cout << board.squares.at(m.first.from).piece->getPieceNotation() << m.first.target << " " << m.second << " ";
@@ -223,15 +228,14 @@ std::optional<BotMove> Bot::choose_move(const Board &board, GameState &state, in
     return best_moves[distribution(generator)];
 }
 
-float Bot::minimax(const Board &board, const GameState &state, const int depth) {
+float Bot::minimax(const Board &board, const GameState &state, const int depth, float alpha, float beta) {
     if (depth == 0 ||
         state.state == GameStatus::Checkmate ||
         state.state == GameStatus::Stalemate) {
         return calculate_position(board, state);
     }
 
-    Board move_board = board;
-    const auto moves = get_legal_moves(state.turn, move_board);
+    const auto moves = get_legal_moves(state.turn, board);
 
     if (moves.empty()) {
         return calculate_position(board, state);
@@ -239,25 +243,70 @@ float Bot::minimax(const Board &board, const GameState &state, const int depth) 
 
     const bool maximizing = state.turn == PieceColor::White;
 
-    float best_score = maximizing ? std::numeric_limits<float>::lowest() : std::numeric_limits<float>::max();
+    if (maximizing) {
+        float best_score = std::numeric_limits<float>::lowest();
 
-    for (const auto &move: moves) {
+        for (const auto& move : moves) {
+            ChessGame simulated_game(board, state);
+            Piece* piece =
+                simulated_game.board().squares.at(move.from).piece;
+            BoardSquare& target =
+                simulated_game.board().squares.at(move.target);
+
+            if (!simulated_game.try_move(*piece, target)) {
+                continue;
+            }
+
+            const float score = minimax(
+                simulated_game.board(),
+                simulated_game.state(),
+                depth - 1,
+                alpha,
+                beta
+            );
+
+            if (state.turn == PieceColor::Black) {
+                best_score = std::min(best_score, score);
+                beta = std::min(beta, best_score);
+            } else {
+                best_score = std::max(best_score, score);
+                alpha = std::max(alpha, best_score);
+            }
+
+            if (beta <= alpha) {
+                break;
+            }
+        }
+
+        return best_score;
+    }
+
+    float best_score = std::numeric_limits<float>::max();
+
+    for (const auto& move : moves) {
         ChessGame simulated_game(board, state);
-
-        Piece *piece = simulated_game.board().squares.at(move.from).piece;
-
-        BoardSquare &target = simulated_game.board().squares.at(move.target);
+        Piece* piece =
+            simulated_game.board().squares.at(move.from).piece;
+        BoardSquare& target =
+            simulated_game.board().squares.at(move.target);
 
         if (!simulated_game.try_move(*piece, target)) {
             continue;
         }
 
-        const float score = minimax(simulated_game.board(), simulated_game.state(), depth - 1);
+        const float score = minimax(
+            simulated_game.board(),
+            simulated_game.state(),
+            depth - 1,
+            alpha,
+            beta
+        );
 
-        if (maximizing) {
-            best_score = std::max(best_score, score);
-        } else {
-            best_score = std::min(best_score, score);
+        best_score = std::min(best_score, score);
+        beta = std::min(beta, best_score);
+
+        if (beta <= alpha) {
+            break;
         }
     }
 
