@@ -151,9 +151,11 @@ MoveOutcome MoveValidator::apply_move(Piece& currentPiece, Board& board, BoardSq
         const int upOrDownMove = currentPiece.colour == PieceColor::White ? -1 : 1;
         const std::string takenSquare = {(square.name[0]), static_cast<char>(square.name[1] + upOrDownMove)};
 
-        board.squares[takenSquare].piece->captured = true;
-        board.squares[takenSquare].piece = nullptr;
-        move_outcome.pieceTaken = true;
+        if (board.squares[takenSquare].piece) {
+            board.squares[takenSquare].piece->captured = true;
+            board.squares[takenSquare].piece = nullptr;
+            move_outcome.pieceTaken = true;
+        }
     }
     board.enpassantSquares.clear();
 

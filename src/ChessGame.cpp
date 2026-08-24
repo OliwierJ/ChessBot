@@ -13,6 +13,9 @@ ChessGame::ChessGame(const Texture2D &piecesTexture) {
     board().set_up_pieces(piecesTexture);
 }
 
+ChessGame::ChessGame(const Board& board, const GameState& state) : gameBoard(board), gameState(state) {}
+
+
 std::optional<MoveOutcome> ChessGame::try_move(Piece &piece, BoardSquare &target) {
     if (gameState.state != GameStatus::Normal) {
         return std::nullopt;
@@ -34,27 +37,27 @@ std::optional<MoveOutcome> ChessGame::try_move(Piece &piece, BoardSquare &target
     return outcome;
 }
 
-std::optional<MoveOutcome> ChessGame::perform_bot_move() {
-    bool found_piece = false;
-    Piece *random_piece = nullptr;
-    std::string move;
-
-    // Bot behaviour
-    while (!found_piece) {
-        const int randomPieceIndex = std::rand() % gameBoard.pieceList.size();
-        random_piece = &gameBoard.pieceList[randomPieceIndex];
-        if (random_piece->captured) continue;
-        if (random_piece->colour != gameState.turn) continue;
-        if (random_piece->legalMoves.empty()) continue;
-
-        const int randomMoveIndex = std::rand() % random_piece->legalMoves.size();
-        move = random_piece->legalMoves[randomMoveIndex];
-        found_piece = true;
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    return try_move(*random_piece, gameBoard.squares[move]);
-}
+// std::optional<MoveOutcome> ChessGame::perform_bot_move() {
+//     bool found_piece = false;
+//     Piece *random_piece = nullptr;
+//     std::string move;
+//
+//     // Bot behaviour
+//     while (!found_piece) {
+//         const int randomPieceIndex = std::rand() % gameBoard.pieceList.size();
+//         random_piece = &gameBoard.pieceList[randomPieceIndex];
+//         if (random_piece->captured) continue;
+//         if (random_piece->colour != gameState.turn) continue;
+//         if (random_piece->legalMoves.empty()) continue;
+//
+//         const int randomMoveIndex = std::rand() % random_piece->legalMoves.size();
+//         move = random_piece->legalMoves[randomMoveIndex];
+//         found_piece = true;
+//     }
+//
+//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//     return try_move(*random_piece, gameBoard.squares[move]);
+// }
 
 const Board &ChessGame::board() const {
     return gameBoard;
@@ -101,6 +104,14 @@ void ChessGame::update_game_status(const MoveOutcome outcome) {
     }
 
     if (outcome.pieceTaken || outcome.pawnMoved) gameState.last_pawn_or_capture = gameState.turn_counter;
+
+    if (outcome.shortCastled || outcome.longCastled) {
+        if (gameState.turn == PieceColor::White) {
+            gameState.white_castled = true;
+        } else {
+            gameState.black_castled = true;
+        }
+    }
     const PieceColor opponent = opposite(gameState.turn);
     const bool checked = gameBoard.isColourChecked(opponent);
     const bool hasLegalMoves =

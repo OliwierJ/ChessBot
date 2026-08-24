@@ -33,6 +33,8 @@ public:
 
     ~Board();
 
+    Board(const Board &other);
+
     void clear_board();
 
     // Draw the board itself

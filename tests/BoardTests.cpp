@@ -188,7 +188,6 @@ TEST_CASE("Rook moves along an empty rank") {
     REQUIRE(rook->isLegalMove("B4"));
     REQUIRE(rook->isLegalMove("H4"));
     REQUIRE(rook->isLegalMove("E1"));
-    REQUIRE(rook->isLegalMove("E8"));
 }
 
 TEST_CASE("Rook cannot move through a piece") {

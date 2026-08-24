@@ -27,6 +27,41 @@ Board::~Board() {
     }
 }
 
+Board::Board(const Board &other)
+    : possibleMoves(other.possibleMoves),
+      whiteIsChecked(other.whiteIsChecked),
+      blackIsChecked(other.blackIsChecked),
+      whiteCanShortCastle(other.whiteCanShortCastle),
+      whiteCanLongCastle(other.whiteCanLongCastle),
+      blackCanShortCastle(other.blackCanShortCastle),
+      blackCanLongCastle(other.blackCanLongCastle),
+      enpassantSquares(other.enpassantSquares){
+
+    for (const auto& [name, square] : other.squares) {
+        squares.emplace(name, square);
+        squares.at(name).piece = nullptr;
+    }
+
+    for (const auto& original : other.pieceList) {
+        if (original.captured) continue;
+
+        pieceList.push_back(original);
+
+        Piece& copy = pieceList.back();
+        copy.square = &squares.at(original.square->name);
+        copy.square->piece = &copy;
+
+        if (original.type == PieceType::King) {
+            if (original.colour == PieceColor::White) {
+                whiteKing = &pieceList.back();
+            } else {
+                blackKing = &pieceList.back();
+            }
+        }
+
+    }
+}
+
 void Board::clear_board() {
     for (auto &[square_str, square]: squares) {
         square.piece = nullptr;
@@ -209,7 +244,7 @@ std::vector<std::string> Board::attackedSquaresOfColor(const PieceColor colour) 
     for (auto &piece: pieceList) {
         if (!piece.captured && piece.colour != colour && piece.notPawnOrKing() && piece.type != PieceType::Knight) {
             piece.calculateLegalMoves(this);
-            allAttackedSquares.insert(allAttackedSquares.end(), piece.legalMoves.begin(), piece.legalMoves.end());
+            allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(), piece.attackingSquares.end());
         }
         if (!piece.captured && piece.colour != colour && piece.type == PieceType::Knight) {
             piece.calculateLegalMoves(this);

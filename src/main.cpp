@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <fstream>
+#include <future>
 #include <iostream>
 #include <thread>
 #include <vector>
 #include "Board.h"
+#include "Bot.h"
 #include "ChessGame.h"
 #include "GameState.h"
 #include "MoveHistory.h"
@@ -61,18 +63,18 @@ void DrawEndGameState(ChessGame &game, const Texture2D &piecesTexture, const Vec
     }
 }
 
-void DrawButton(const Rectangle rect, const Color color, const char* text) {
+void DrawButton(const Rectangle rect, const Color color, const char *text) {
     constexpr int font_size = 25;
     constexpr int border = 5;
     const auto [x, y] = MeasureTextEx(GetFontDefault(), text, font_size, 0);
     DrawRectangle(rect.x, rect.y, rect.width, rect.height, color);
-    DrawRectangle(rect.x + border, rect.y + border, rect.width - border*2, rect.height - border*2, color);
+    DrawRectangle(rect.x + border, rect.y + border, rect.width - border * 2, rect.height - border * 2, color);
     const Vector2 button_center = {rect.x + rect.width / 2, rect.y + rect.height / 2};
     const Vector2 text_point = {button_center.x - x / 2, button_center.y - y / 2};
     DrawText(text, text_point.x, text_point.y, font_size, BLACK);
 }
 
-void render_menu(ChessGame& game, const Vector2 mouse) {
+void render_menu(ChessGame &game, const Vector2 mouse) {
     constexpr int button_w = 250;
     constexpr int button_y = 300;
     constexpr int bot_button_y = 400;
@@ -109,6 +111,10 @@ int main() {
     ChessGame game(piecesTexture);
     Piece *currentPiece = nullptr;
 
+    bool bot_thinking = false;
+    std::future<std::optional<BotMove>> bot_task;
+
+
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(DARKBROWN);
@@ -136,7 +142,7 @@ int main() {
 
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            std::cout << "X: " << mouse.x << "Y: " << mouse.y << "\n";
+            // std::cout << "X: " << mouse.x << "Y: " << mouse.y << "\n";
             for (auto &p: game.board().pieceList) {
                 if (p.captured) continue;
                 if (game.state().turn != p.colour) continue;
@@ -185,10 +191,36 @@ int main() {
             DrawText("Black's turn", 10, 10, 20, WHITE);
 
         EndDrawing();
-        if (game.state().bot_game && game.state().turn == PieceColor::Black) {
-            if (const auto result = game.perform_bot_move()) {
+
+        if (game.state().bot_game && game.state().turn == PieceColor::Black && !bot_thinking) {
+            Board board_snapshot = game.board();
+            GameState state_snapshot = game.state();
+
+            bot_thinking = true;
+            bot_task = std::async(
+                std::launch::async,
+                [board = std::move(board_snapshot),
+                    state = std::move(state_snapshot)] mutable {
+                    return Bot::choose_move(board, state, 3);
+                }
+            );
+        }
+
+        if (bot_thinking && bot_task.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+            const auto move = bot_task.get();
+            if (!move.has_value()) {
+                bot_thinking = false;
+                continue;
+            }
+            const auto [from, target] = move.value();
+            Piece* piece = game.board().squares.at(from).piece;
+            BoardSquare& square = game.board().squares.at(target);
+
+            if (const auto result = game.try_move(*piece, square)) {
                 SoundManager::play_move_sound(game, result.value());
             }
+
+            bot_thinking = false;
         }
     }
 

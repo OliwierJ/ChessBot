@@ -10,7 +10,9 @@ set(EMBEDDED_RESOURCES_HEADER "${CMAKE_CURRENT_BINARY_DIR}/embedded_resources.h"
         src/ChessGame.h
         src/SoundManager.cpp
         src/SoundManager.h
-        src/Bot.cpp)
+        src/Bot.cpp
+        src/Bot.h
+)
 set(RESOURCE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/resources/move-check.wav"
         "${CMAKE_CURRENT_SOURCE_DIR}/resources/move-self.wav"
@@ -95,5 +97,6 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/MoveValidator.h
         "${EMBEDDED_RESOURCES_HEADER}"
         src/Bot.cpp
+        src/Bot.h
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

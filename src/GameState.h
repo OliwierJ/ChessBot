@@ -20,6 +20,8 @@ public:
     float evaluation = 0;
     MoveHistory move_history;
     std::optional<PieceColor> winner;
+    bool white_castled = false;
+    bool black_castled = false;
 
     void reset_state();
 

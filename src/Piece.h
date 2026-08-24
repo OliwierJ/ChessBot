@@ -48,6 +48,13 @@ public:
     PieceType type;
     int value;
 
+    void calculate_attacking_row(Board *board, const std::string &current, const Piece *piece, int direction);
+
+    void calculate_attacking_column(Board *board, const std::string &current, const Piece *piece, int direction);
+
+    void calculate_attacking_diagonal(Board *board, const std::string &current, const Piece *piece, int leftOrRight,
+                                      int upOrDown);
+
     static int getMaterialValue(PieceType type);
 
     Piece(PieceType type, PieceColor pieceColour, BoardSquare &square, const Texture2D &texture);
@@ -78,6 +85,8 @@ public:
 
     [[nodiscard]]
     char getPieceNotation() const;
+
+    std::string to_string() const;
 
 private:
     const int UP = 1;

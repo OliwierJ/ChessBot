@@ -6,9 +6,8 @@
 #include <iostream>
 
 #pragma region private helpers
-std::vector<std::string> calculate_attacking_row(Board *board, const std::string &current, const Piece *piece,
-                                                 const int direction) {
-    std::vector<std::string> row;
+void Piece::calculate_attacking_row(Board *board, const std::string &current, const Piece *piece,
+                                    const int direction) {
     std::string nextSquare = current;
     const char bound = direction == 1 ? 'H' : 'A';
     while (nextSquare[0] != bound) {
@@ -17,20 +16,23 @@ std::vector<std::string> calculate_attacking_row(Board *board, const std::string
             if (board->squares[nextSquare].piece->type == PieceType::King && board->squares[nextSquare].piece->colour !=
                 piece->
                 colour) {
-                row.push_back(nextSquare);
+                legalMoves.push_back(nextSquare);
+                attackingSquares.push_back(nextSquare);
                 continue;
             }
-            row.push_back(nextSquare);
+            if (board->squares[nextSquare].piece->colour != colour) {
+                legalMoves.push_back(nextSquare);
+            }
+            attackingSquares.push_back(nextSquare);
             break;
         }
-        row.push_back(nextSquare);
+        legalMoves.push_back(nextSquare);
+        attackingSquares.push_back(nextSquare);
     }
-    return row;
 }
 
-std::vector<std::string> calculate_attacking_column(Board *board, const std::string &current, const Piece *piece,
-                                                    const int direction) {
-    std::vector<std::string> row;
+void Piece::calculate_attacking_column(Board *board, const std::string &current, const Piece *piece,
+                                       const int direction) {
     std::string nextSquare = current;
     const char bound = direction == 1 ? '8' : '1';
     while (nextSquare[1] != bound) {
@@ -39,18 +41,22 @@ std::vector<std::string> calculate_attacking_column(Board *board, const std::str
             if (board->squares[nextSquare].piece->type == PieceType::King && board->squares[nextSquare].piece->colour !=
                 piece->
                 colour) {
-                row.push_back(nextSquare);
+                legalMoves.push_back(nextSquare);
+                attackingSquares.push_back(nextSquare);
                 continue;
             }
-            row.push_back(nextSquare);
+            if (board->squares[nextSquare].piece->colour != colour) {
+                legalMoves.push_back(nextSquare);
+            }
+            attackingSquares.push_back(nextSquare);
             break;
         }
-        row.push_back(nextSquare);
+        legalMoves.push_back(nextSquare);
+        attackingSquares.push_back(nextSquare);
     }
-    return row;
 }
 
-std::vector<std::string> calculate_attacking_diagonal(Board *board, const std::string &current, const Piece *piece,
+void Piece::calculate_attacking_diagonal(Board *board, const std::string &current, const Piece *piece,
                                                       const int leftOrRight, const int upOrDown) {
     std::vector<std::string> diagonalMoves;
     std::string nextSquare = current;
@@ -64,16 +70,19 @@ std::vector<std::string> calculate_attacking_diagonal(Board *board, const std::s
             if (board->squares[nextSquare].piece->type == PieceType::King && board->squares[nextSquare].piece->colour !=
                 piece->
                 colour) {
-                diagonalMoves.push_back(nextSquare);
+                legalMoves.push_back(nextSquare);
+                attackingSquares.push_back(nextSquare);
                 continue;
             }
-            diagonalMoves.push_back(nextSquare);
+            if (board->squares[nextSquare].piece->colour != colour) {
+                legalMoves.push_back(nextSquare);
+            }
+            attackingSquares.push_back(nextSquare);
             break;
         }
-        diagonalMoves.push_back(nextSquare);
+        legalMoves.push_back(nextSquare);
+        attackingSquares.push_back(nextSquare);
     }
-
-    return diagonalMoves;
 }
 #pragma endregion private helpers
 
@@ -183,6 +192,7 @@ bool Piece::try_promote() {
     if ((colour == PieceColor::White && square->name[1] == '8') ||
         colour == PieceColor::Black && square->name[1] == '1') {
         type = PieceType::Queen;
+        value = 9;
 
         constexpr int pawnIndex = static_cast<int>(PieceType::Pawn);
         constexpr int queenIndex = static_cast<int>(PieceType::Queen);
@@ -265,49 +275,30 @@ void Piece::calculateLegalMoves(Board *board) {
     }
 
     if (type == PieceType::Rook) {
-        std::vector<std::string> rightRow = calculate_attacking_row(board, current, this, RIGHT);
-        std::vector<std::string> leftRow = calculate_attacking_row(board, current, this, LEFT);
-        std::vector<std::string> upCol = calculate_attacking_column(board, current, this, UP);
-        std::vector<std::string> downCol = calculate_attacking_column(board, current, this, DOWN);
+        calculate_attacking_row(board, current, this, RIGHT);
+        calculate_attacking_row(board, current, this, LEFT);
+        calculate_attacking_column(board, current, this, UP);
+        calculate_attacking_column(board, current, this, DOWN);
 
-        legalMoves.insert(legalMoves.end(), rightRow.begin(), rightRow.end());
-        legalMoves.insert(legalMoves.end(), leftRow.begin(), leftRow.end());
-        legalMoves.insert(legalMoves.end(), upCol.begin(), upCol.end());
-        legalMoves.insert(legalMoves.end(), downCol.begin(), downCol.end());
     }
 
     if (type == PieceType::Bishop) {
-        std::vector<std::string> topLeftDiagonal = calculate_attacking_diagonal(board, current, this, LEFT, UP);
-        std::vector<std::string> topRightDiagonal = calculate_attacking_diagonal(board, current, this, RIGHT, UP);
-        std::vector<std::string> bottomLeftDiagonal = calculate_attacking_diagonal(board, current, this, LEFT, DOWN);
-        std::vector<std::string> bottomRightDiagonal = calculate_attacking_diagonal(board, current, this, RIGHT, DOWN);
-
-        legalMoves.insert(legalMoves.end(), topRightDiagonal.begin(), topRightDiagonal.end());
-        legalMoves.insert(legalMoves.end(), topLeftDiagonal.begin(), topLeftDiagonal.end());
-        legalMoves.insert(legalMoves.end(), bottomRightDiagonal.begin(), bottomRightDiagonal.end());
-        legalMoves.insert(legalMoves.end(), bottomLeftDiagonal.begin(), bottomLeftDiagonal.end());
+        calculate_attacking_diagonal(board, current, this, LEFT, UP);
+        calculate_attacking_diagonal(board, current, this, RIGHT, UP);
+        calculate_attacking_diagonal(board, current, this, LEFT, DOWN);
+        calculate_attacking_diagonal(board, current, this, RIGHT, DOWN);
     }
 
     if (type == PieceType::Queen) {
-        std::vector<std::string> rightRow = calculate_attacking_row(board, current, this, RIGHT);
-        std::vector<std::string> leftRow = calculate_attacking_row(board, current, this, LEFT);
-        std::vector<std::string> upCol = calculate_attacking_column(board, current, this, UP);
-        std::vector<std::string> downCol = calculate_attacking_column(board, current, this, DOWN);
+        calculate_attacking_row(board, current, this, RIGHT);
+        calculate_attacking_row(board, current, this, LEFT);
+        calculate_attacking_column(board, current, this, UP);
+        calculate_attacking_column(board, current, this, DOWN);
 
-        std::vector<std::string> topLeftDiagonal = calculate_attacking_diagonal(board, current, this, LEFT, UP);
-        std::vector<std::string> topRightDiagonal = calculate_attacking_diagonal(board, current, this, RIGHT, UP);
-        std::vector<std::string> bottomLeftDiagonal = calculate_attacking_diagonal(board, current, this, LEFT, DOWN);
-        std::vector<std::string> bottomRightDiagonal = calculate_attacking_diagonal(board, current, this, RIGHT, DOWN);
-
-        legalMoves.insert(legalMoves.end(), topRightDiagonal.begin(), topRightDiagonal.end());
-        legalMoves.insert(legalMoves.end(), topLeftDiagonal.begin(), topLeftDiagonal.end());
-        legalMoves.insert(legalMoves.end(), bottomRightDiagonal.begin(), bottomRightDiagonal.end());
-        legalMoves.insert(legalMoves.end(), bottomLeftDiagonal.begin(), bottomLeftDiagonal.end());
-
-        legalMoves.insert(legalMoves.end(), rightRow.begin(), rightRow.end());
-        legalMoves.insert(legalMoves.end(), leftRow.begin(), leftRow.end());
-        legalMoves.insert(legalMoves.end(), upCol.begin(), upCol.end());
-        legalMoves.insert(legalMoves.end(), downCol.begin(), downCol.end());
+        calculate_attacking_diagonal(board, current, this, LEFT, UP);
+        calculate_attacking_diagonal(board, current, this, RIGHT, UP);
+        calculate_attacking_diagonal(board, current, this, LEFT, DOWN);
+        calculate_attacking_diagonal(board, current, this, RIGHT, DOWN);
     }
 
     if (type == PieceType::King) {
@@ -324,7 +315,7 @@ void Piece::calculateLegalMoves(Board *board) {
             topLeft, up, topRight, right, downRight, down, downLeft, left
         };
 
-        auto attackedSquares = board->attackedSquaresOfColor(colour);
+        const auto attackedSquares = board->attackedSquaresOfColor(colour);
 
         if (!hasMoved && !board->isColourChecked(colour)) {
             if (colour == PieceColor::White) {
@@ -358,10 +349,35 @@ void Piece::calculateLegalMoves(Board *board) {
                        ==
                        colour) {
                 movesIterator = legalMoves.erase(movesIterator);
-            } else if (std::ranges::count(attackedSquares, *movesIterator) >= 1) {
-                movesIterator = legalMoves.erase(movesIterator);
             } else {
-                ++movesIterator;
+                BoardSquare* original_square = square;
+                BoardSquare& target_square = board->squares[*movesIterator];
+                Piece* captured_piece = target_square.piece;
+
+                original_square->piece = nullptr;
+                target_square.piece = this;
+                square = &target_square;
+                if (captured_piece != nullptr) {
+                    captured_piece->captured = true;
+                }
+
+                const auto resulting_attacked_squares =
+                    board->attackedSquaresOfColor(colour);
+                const bool king_is_attacked =
+                    std::ranges::count(resulting_attacked_squares, target_square.name) > 0;
+
+                if (captured_piece != nullptr) {
+                    captured_piece->captured = false;
+                }
+                square = original_square;
+                original_square->piece = this;
+                target_square.piece = captured_piece;
+
+                if (king_is_attacked) {
+                    movesIterator = legalMoves.erase(movesIterator);
+                } else {
+                    ++movesIterator;
+                }
             }
         }
     }
@@ -406,6 +422,14 @@ char Piece::getPieceNotation() const {
     if (type == PieceType::Knight) return 'N';
     if (type == PieceType::Bishop) return 'B';
     return ' ';
+}
+
+std::string Piece::to_string() const {
+    std::string output;
+    output += getPieceNotation();
+    output += square->name;
+
+    return output;
 }
 
 Rectangle Piece::getPieceRect(const Texture2D &piecesTexture, const PieceType piece, const PieceColor colour) {

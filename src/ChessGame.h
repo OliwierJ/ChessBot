@@ -20,10 +20,11 @@ class BoardSquare;
 class ChessGame {
 public:
     explicit ChessGame(const Texture2D& piecesTexture);
+    ChessGame(const Board& board, const GameState& state);
 
     std::optional<MoveOutcome> try_move(Piece &piece, BoardSquare &target);
 
-    std::optional<MoveOutcome> perform_bot_move();
+    // std::optional<MoveOutcome> perform_bot_move();
 
     [[nodiscard]]
     const Board &board() const;
