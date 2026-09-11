@@ -152,6 +152,31 @@ void Board::set_up_pieces(const Texture2D &piecesTexture) {
     }
 }
 
+size_t Board::generate_hash() const {
+    size_t hash = 0;
+
+    for (const auto& p : pieceList) {
+        const char c = p.getPieceNotation();
+        std::string s = p.square->name;
+        int piece = p.colour == PieceColor::White ? 1 : 2;
+        piece = (piece * 10 + c) * 10;
+        piece = piece * 10 + s[0];
+        piece = piece * 100 + s[1];
+        hash += piece;
+    }
+    hash += whiteCanShortCastle;
+    hash += whiteCanLongCastle;
+    hash += blackCanShortCastle;
+    hash += blackCanLongCastle;
+
+    for (const auto& e : enpassantSquares) {
+        int s = e[0];
+        s = s * 10 + e[1];
+        hash += s;
+    }
+    return hash;
+}
+
 bool Board::isColourChecked(const PieceColor colour) const {
     if (colour == PieceColor::White) return whiteIsChecked;
     return blackIsChecked;

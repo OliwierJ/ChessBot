@@ -28,7 +28,7 @@ void SoundManager::load_sounds() {
 
 void SoundManager::play_move_sound(ChessGame &game, const MoveOutcome result) {
     if (game.state().state == GameStatus::Checkmate ||
-        game.state().state == GameStatus::Stalemate) {
+        game.state().state == GameStatus::Stalemate || game.state().state == GameStatus::Draw) {
         PlaySound(gameEndSound);
     } else if (result.check) {
         PlaySound(checkSound);

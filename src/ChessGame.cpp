@@ -1,4 +1,7 @@
 #include "ChessGame.h"
+
+#include <iostream>
+
 #include "Board.h"
 #include "GameState.h"
 #include "MoveValidator.h"
@@ -6,6 +9,7 @@
 
 ChessGame::ChessGame(const Texture2D &piecesTexture) {
     board().set_up_pieces(piecesTexture);
+    gameState.position_table[gameBoard.generate_hash()]++;
 }
 
 ChessGame::ChessGame(const Board& board, const GameState& state) : gameBoard(board), gameState(state) {}
@@ -47,6 +51,7 @@ void ChessGame::restart_game(const Texture2D &pieceTexture) {
     gameBoard.clear_board();
     gameBoard.set_up_pieces(pieceTexture);
     gameState.reset_state();
+    gameState.position_table[gameBoard.generate_hash()]++;
 }
 
 void ChessGame::complete_move(const Piece &piece, const BoardSquare &target, const std::string &previousPosition,
@@ -129,10 +134,20 @@ void ChessGame::update_game_status(const MoveOutcome outcome) {
     }
 
     if (check_draw_by_insufficient_material()) {
-        gameState.state = GameStatus::Stalemate;
+        gameState.state = GameStatus::Draw;
         return;
     }
 
+    const auto new_hash = gameBoard.generate_hash();
+    gameState.position_table[new_hash]++;
+    if (gameState.position_table[new_hash] == 3) {
+        gameState.state = GameStatus::Draw;
+        return;
+    }
+    std::cout << gameState.move_history.movesList.size() << "\n";
+    for (auto [t,s] : gameState.position_table) {
+        std::cout << t << " " << s << "\n";
+    }
     if (outcome.pieceTaken || outcome.pawnMoved) gameState.last_pawn_or_capture = gameState.turn_counter;
 
     if (outcome.shortCastled || outcome.longCastled) {

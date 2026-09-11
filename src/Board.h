@@ -55,6 +55,8 @@ public:
 
     std::unordered_set<std::string> enpassantSquares = {};
 
+    size_t generate_hash() const;
+
     [[nodiscard]]
     bool isColourChecked(PieceColor colour) const;
 

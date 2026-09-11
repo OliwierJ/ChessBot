@@ -8,5 +8,6 @@ void GameState::reset_state() {
     evaluation = 0;
     turn_counter = 1;
     last_pawn_or_capture = 1;
+    position_table.clear();
 
 }

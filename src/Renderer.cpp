@@ -31,8 +31,10 @@ void Renderer::draw_end_game_state(ChessGame &game, const Vector2 mouse) const {
         const std::string text = game.state().winner == PieceColor::White ? "White wins!" : "Black wins!";
         DrawText("Checkmate!", 300, 300, 30, WHITE);
         DrawText(text.c_str(), 300, 330, 30, WHITE);
-    } else {
+    } else if (game.state().state == GameStatus::Stalemate) {
         DrawText("Stalemate!", 300, 300, 30, WHITE);
+    } else {
+        DrawText("Draw!", 330, 300, 30, WHITE);
     }
 
     DrawRectangle(260, 380, 225, 60, BLACK);
@@ -101,7 +103,7 @@ void Renderer::draw(ChessGame &game, const Vector2 &mouse, const RenderState ren
     draw_move_history(game.state().move_history);
 
     // Game end loop
-    if (game.state().state == GameStatus::Checkmate || game.state().state == GameStatus::Stalemate) {
+    if (game.state().state == GameStatus::Checkmate || game.state().state == GameStatus::Stalemate || game.state().state == GameStatus::Draw) {
         draw_end_game_state(game, mouse);
         return;
     }

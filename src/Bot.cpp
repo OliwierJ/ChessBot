@@ -44,7 +44,7 @@ float Bot::calculate_position(const Board &board, const GameState &state) {
                    : -checkmate_score;
     }
 
-    if (state.state == GameStatus::Stalemate) {
+    if (state.state == GameStatus::Stalemate || state.state == GameStatus::Draw) {
         return 0;
     }
 
@@ -334,7 +334,7 @@ std::optional<BotMove> Bot::choose_move(const Board &board, const GameState &sta
 }
 
 float Bot::minimax(Board &board, GameState &state, const int depth, float alpha, float beta) {
-    if (depth == 0 || state.state == GameStatus::Checkmate || state.state == GameStatus::Stalemate) {
+    if (depth == 0 || state.state == GameStatus::Checkmate || state.state == GameStatus::Stalemate || state.state == GameStatus::Draw) {
         return calculate_position(board, state);
     }
 

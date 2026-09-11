@@ -2,9 +2,11 @@
 #define CHESSBOT_GAMESTATE_H
 #include "MoveHistory.h"
 #include <optional>
+#include <unordered_map>
+
 #include "Board.h"
 
-enum class GameStatus {Menu, Normal, Checkmate, Stalemate};
+enum class GameStatus {Menu, Normal, Checkmate, Stalemate, Draw};
 
 class GameState {
 public:
@@ -18,7 +20,7 @@ public:
     std::optional<PieceColor> winner;
     bool white_castled = false;
     bool black_castled = false;
-
+    std::unordered_map<size_t, int> position_table;
     void reset_state();
 
 };
