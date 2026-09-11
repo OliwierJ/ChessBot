@@ -3,6 +3,8 @@
 
 #include "raylib.h"
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class Board;
@@ -43,8 +45,8 @@ public:
     bool captured = false;
     bool hasMoved = false;
     BoardSquare *square;
-    std::vector<std::string> legalMoves;
-    std::vector<std::string> attackingSquares;
+    std::unordered_set<std::string> legalMoves;
+    std::unordered_set<std::string> attackingSquares;
     PieceType type;
     int value;
 
@@ -69,7 +71,7 @@ public:
 
     void calculateLegalMoves(Board *board);
 
-    bool isLegalMove(const std::string& move);
+    bool isLegalMove(const std::string& move) const;
 
     void Draw(const Texture2D &piecesTexture) const;
 

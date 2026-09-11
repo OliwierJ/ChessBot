@@ -71,11 +71,11 @@ void deny_castling_for_rook(const Piece& currentPiece, Board &board) {
 void mark_square_as_enpassant(const Piece& currentPiece, Board &board, BoardSquare &square) {
     if (currentPiece.colour == PieceColor::White) {
         if (square.name[1] == '4') {
-            board.enpassantSquares.push_back({square.name[0], '3'});
+            board.enpassantSquares.insert({square.name[0], '3'});
         }
     } else {
         if (square.name[1] == '5') {
-            board.enpassantSquares.push_back({square.name[0], '6'});
+            board.enpassantSquares.insert({square.name[0], '6'});
         }
     }
 }
@@ -90,7 +90,7 @@ bool MoveValidator::validate_legal_move(Piece& currentPiece, BoardSquare &target
     if (board.isColourChecked(currentPiece.colour)) {
         std::string takenSquare;
         Piece *enpassantPiece = nullptr;
-        if (std::ranges::count(board.enpassantSquares, target_square.name)) {
+        if (board.enpassantSquares.contains(target_square.name)) {
             const int upOrDownMove = currentPiece.colour == PieceColor::White ? -1 : 1;
             takenSquare = {(target_square.name[0]), static_cast<char>(target_square.name[1] + upOrDownMove)};
             enpassantPiece = board.squares[takenSquare].piece;
@@ -106,7 +106,7 @@ bool MoveValidator::validate_legal_move(Piece& currentPiece, BoardSquare &target
         board.calculateAllLegalMoves();
         auto newAttackedSquares = board.attackedSquaresOfColor(currentPiece.colour);
         if (currentPiece.colour == PieceColor::White) {
-            board.whiteIsChecked = std::ranges::count(newAttackedSquares, board.whiteKing->square->name) >= 1;
+            board.whiteIsChecked = newAttackedSquares.contains(board.whiteKing->square->name);
             if (board.whiteIsChecked) {
                 if (tempCurrent != nullptr) tempCurrent->captured = false;
                 currentPiece.square = tempSquare;
@@ -115,7 +115,7 @@ bool MoveValidator::validate_legal_move(Piece& currentPiece, BoardSquare &target
                 return false;
             }
         } else {
-            board.blackIsChecked = std::ranges::count(newAttackedSquares, board.blackKing->square->name) >= 1;
+            board.blackIsChecked = newAttackedSquares.contains(board.blackKing->square->name);
             if (board.blackIsChecked) {
                 if (tempCurrent != nullptr) tempCurrent->captured = false;
                 currentPiece.square = tempSquare;
@@ -147,7 +147,7 @@ MoveOutcome MoveValidator::apply_move(Piece& currentPiece, Board& board, BoardSq
     }
 
     // perform en passant
-    if (std::ranges::count(board.enpassantSquares, square.name)) {
+    if (board.enpassantSquares.contains(square.name)) {
         const int upOrDownMove = currentPiece.colour == PieceColor::White ? -1 : 1;
         const std::string takenSquare = {(square.name[0]), static_cast<char>(square.name[1] + upOrDownMove)};
 
@@ -186,12 +186,12 @@ MoveOutcome MoveValidator::apply_move(Piece& currentPiece, Board& board, BoardSq
     // calculate whether a check occurred
     board.calculateAllLegalMovesByColour(opposite(currentPiece.colour));
     if (currentPiece.colour == PieceColor::White) {
-        auto temp = board.attackedSquaresOfColor(PieceColor::Black);
-        board.blackIsChecked = std::ranges::count(temp, board.blackKing->square->name) >= 1;
+        const auto temp = board.attackedSquaresOfColor(PieceColor::Black);
+        board.blackIsChecked = temp.contains(board.blackKing->square->name);
         move_outcome.check = board.blackIsChecked;
     } else {
-        auto temp = board.attackedSquaresOfColor(PieceColor::White);
-        board.whiteIsChecked = std::ranges::count(temp, board.whiteKing->square->name) >= 1;
+        const auto temp = board.attackedSquaresOfColor(PieceColor::White);
+        board.whiteIsChecked = temp.contains(board.whiteKing->square->name);
         move_outcome.check = board.whiteIsChecked;
     }
     if (currentPiece.type == PieceType::Pawn) move_outcome.pawnMoved = true;

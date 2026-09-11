@@ -20,7 +20,7 @@ class Board {
     const float MOVE_CIRCLE = 15;
 public:
     std::map<std::string, BoardSquare> squares;
-    std::vector<std::string> possibleMoves;
+    std::unordered_set<std::string> possibleMoves;
     std::deque<Piece> pieceList;
     Piece* whiteKing{};
     Piece* blackKing{};
@@ -46,7 +46,7 @@ public:
     void drawLegalMove(const std::string &notation, PieceColor colour);
 
     // Checks if the given move is on the board
-    bool isPossibleMove(const std::string& move);
+    bool isPossibleMove(const std::string& move) const;
 
     // calculates all legal moves for all pieces, followed by both kings
     void calculateAllLegalMoves();
@@ -65,7 +65,7 @@ public:
     bool blackCanShortCastle = true;
     bool blackCanLongCastle = true;
 
-    std::vector<std::string> enpassantSquares = {};
+    std::unordered_set<std::string> enpassantSquares = {};
 
     [[nodiscard]]
     bool isColourChecked(PieceColor colour) const;
@@ -75,7 +75,7 @@ public:
     size_t getLegalMoveCount(PieceColor colour) const;
 
     // Gets all the attacked squares for a colour
-    std::vector<std::string> attackedSquaresOfColor(PieceColor colour);
+    std::unordered_set<std::string> attackedSquaresOfColor(PieceColor colour);
 
     void addBothKings();
 };

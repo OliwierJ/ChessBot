@@ -16,7 +16,7 @@ Board::Board() {
                 nullptr,
                 letter + number
             };
-            possibleMoves.push_back(letter + number);
+            possibleMoves.insert(letter + number);
         }
     }
 }
@@ -35,19 +35,18 @@ Board::Board(const Board &other)
       whiteCanLongCastle(other.whiteCanLongCastle),
       blackCanShortCastle(other.blackCanShortCastle),
       blackCanLongCastle(other.blackCanLongCastle),
-      enpassantSquares(other.enpassantSquares){
-
-    for (const auto& [name, square] : other.squares) {
+      enpassantSquares(other.enpassantSquares) {
+    for (const auto &[name, square]: other.squares) {
         squares.emplace(name, square);
         squares.at(name).piece = nullptr;
     }
 
-    for (const auto& original : other.pieceList) {
+    for (const auto &original: other.pieceList) {
         if (original.captured) continue;
 
         pieceList.push_back(original);
 
-        Piece& copy = pieceList.back();
+        Piece &copy = pieceList.back();
         copy.square = &squares.at(original.square->name);
         copy.square->piece = &copy;
 
@@ -58,7 +57,6 @@ Board::Board(const Board &other)
                 blackKing = &pieceList.back();
             }
         }
-
     }
 }
 
@@ -121,8 +119,12 @@ void Board::draw_taken_material(const Texture2D &texture) const {
     const int black_advantage = black_material_taken - white_material_taken;
     const std::string white_text = "+" + std::to_string(white_advantage);
     const std::string black_text = "+" + std::to_string(black_advantage);
-    if (white_advantage > 0) DrawText(white_text.c_str(), black_taken.x + gap * black_taken_idx, black_taken.y + 5, 20, WHITE);
-    if (black_advantage > 0) DrawText(black_text.c_str(), white_taken.x + gap * white_taken_idx, white_taken.y + 5, 20, WHITE);
+    if (white_advantage > 0)
+        DrawText(white_text.c_str(), black_taken.x + gap * black_taken_idx, black_taken.y + 5, 20,
+                 WHITE);
+    if (black_advantage > 0)
+        DrawText(black_text.c_str(), white_taken.x + gap * white_taken_idx, white_taken.y + 5, 20,
+                 WHITE);
 }
 
 
@@ -136,8 +138,8 @@ void Board::drawLegalMove(const std::string &notation, const PieceColor colour) 
     }
 }
 
-bool Board::isPossibleMove(const std::string &move) {
-    return std::ranges::count(possibleMoves, move) == 1;
+bool Board::isPossibleMove(const std::string &move) const {
+    return possibleMoves.contains(move);
 }
 
 void Board::calculateAllLegalMoves() {
@@ -239,17 +241,16 @@ size_t Board::getLegalMoveCount(const PieceColor colour) const {
     return count;
 }
 
-std::vector<std::string> Board::attackedSquaresOfColor(const PieceColor colour) {
-    std::vector<std::string> allAttackedSquares;
+std::unordered_set<std::string> Board::attackedSquaresOfColor(const PieceColor colour) {
+    std::unordered_set<std::string> allAttackedSquares;
     for (auto &piece: pieceList) {
         if (!piece.captured && piece.colour != colour && piece.notPawnOrKing() && piece.type != PieceType::Knight) {
             piece.calculateLegalMoves(this);
-            allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(), piece.attackingSquares.end());
+            allAttackedSquares.insert(piece.attackingSquares.begin(), piece.attackingSquares.end());
         }
         if (!piece.captured && piece.colour != colour && piece.type == PieceType::Knight) {
             piece.calculateLegalMoves(this);
-            allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(),
-                                      piece.attackingSquares.end());
+            allAttackedSquares.insert(piece.attackingSquares.begin(), piece.attackingSquares.end());
         }
         if (!piece.captured && piece.colour != colour && !piece.notPawnOrKing()) {
             if (piece.type == PieceType::Pawn) {
@@ -258,8 +259,7 @@ std::vector<std::string> Board::attackedSquaresOfColor(const PieceColor colour) 
             if (piece.type == PieceType::King) {
                 piece.calculate_king_attacking_squares(this);
             }
-            allAttackedSquares.insert(allAttackedSquares.end(), piece.attackingSquares.begin(),
-                                      piece.attackingSquares.end());
+            allAttackedSquares.insert(piece.attackingSquares.begin(), piece.attackingSquares.end());
         }
     }
     return allAttackedSquares;

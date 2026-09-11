@@ -16,18 +16,18 @@ void Piece::calculate_attacking_row(Board *board, const std::string &current, co
             if (board->squares[nextSquare].piece->type == PieceType::King && board->squares[nextSquare].piece->colour !=
                 piece->
                 colour) {
-                legalMoves.push_back(nextSquare);
-                attackingSquares.push_back(nextSquare);
+                legalMoves.insert(nextSquare);
+                attackingSquares.insert(nextSquare);
                 continue;
             }
             if (board->squares[nextSquare].piece->colour != colour) {
-                legalMoves.push_back(nextSquare);
+                legalMoves.insert(nextSquare);
             }
-            attackingSquares.push_back(nextSquare);
+            attackingSquares.insert(nextSquare);
             break;
         }
-        legalMoves.push_back(nextSquare);
-        attackingSquares.push_back(nextSquare);
+        legalMoves.insert(nextSquare);
+        attackingSquares.insert(nextSquare);
     }
 }
 
@@ -41,23 +41,23 @@ void Piece::calculate_attacking_column(Board *board, const std::string &current,
             if (board->squares[nextSquare].piece->type == PieceType::King && board->squares[nextSquare].piece->colour !=
                 piece->
                 colour) {
-                legalMoves.push_back(nextSquare);
-                attackingSquares.push_back(nextSquare);
+                legalMoves.insert(nextSquare);
+                attackingSquares.insert(nextSquare);
                 continue;
             }
             if (board->squares[nextSquare].piece->colour != colour) {
-                legalMoves.push_back(nextSquare);
+                legalMoves.insert(nextSquare);
             }
-            attackingSquares.push_back(nextSquare);
+            attackingSquares.insert(nextSquare);
             break;
         }
-        legalMoves.push_back(nextSquare);
-        attackingSquares.push_back(nextSquare);
+        legalMoves.insert(nextSquare);
+        attackingSquares.insert(nextSquare);
     }
 }
 
 void Piece::calculate_attacking_diagonal(Board *board, const std::string &current, const Piece *piece,
-                                                      const int leftOrRight, const int upOrDown) {
+                                         const int leftOrRight, const int upOrDown) {
     std::vector<std::string> diagonalMoves;
     std::string nextSquare = current;
     const char rowBound = leftOrRight == 1 ? 'H' : 'A';
@@ -70,18 +70,18 @@ void Piece::calculate_attacking_diagonal(Board *board, const std::string &curren
             if (board->squares[nextSquare].piece->type == PieceType::King && board->squares[nextSquare].piece->colour !=
                 piece->
                 colour) {
-                legalMoves.push_back(nextSquare);
-                attackingSquares.push_back(nextSquare);
+                legalMoves.insert(nextSquare);
+                attackingSquares.insert(nextSquare);
                 continue;
             }
             if (board->squares[nextSquare].piece->colour != colour) {
-                legalMoves.push_back(nextSquare);
+                legalMoves.insert(nextSquare);
             }
-            attackingSquares.push_back(nextSquare);
+            attackingSquares.insert(nextSquare);
             break;
         }
-        legalMoves.push_back(nextSquare);
-        attackingSquares.push_back(nextSquare);
+        legalMoves.insert(nextSquare);
+        attackingSquares.insert(nextSquare);
     }
 }
 #pragma endregion private helpers
@@ -114,7 +114,7 @@ void Piece::remove_moves_leading_to_checks(Board *board) {
         std::string enpassantSquare;
         Piece *possibleMovableSquaresPiece = nullptr;
         // check if en passant can take attacking piece
-        if (std::ranges::count(board->enpassantSquares, board->squares[*movesIterator].name)) {
+        if (board->enpassantSquares.contains(board->squares[*movesIterator].name)) {
             const int upOrDownMove = colour == PieceColor::White ? -1 : 1;
             enpassantSquare = {
                 (board->squares[*movesIterator].name[0]),
@@ -139,7 +139,7 @@ void Piece::remove_moves_leading_to_checks(Board *board) {
         // see if king is in check now
         auto newAttackedSquares = board->attackedSquaresOfColor(colour);
         const auto king = board->getKingByColor(colour);
-        const bool check = std::ranges::count(newAttackedSquares, king->square->name) >= 1;
+        const bool check = newAttackedSquares.contains(king->square->name);
 
         // reset board position
         if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->captured = false;
@@ -183,7 +183,7 @@ void Piece::calculate_king_attacking_squares(Board *board) {
     const auto moves = {
         topLeft, up, topRight, right, downRight, down, downLeft, left
     };
-    attackingSquares.insert(attackingSquares.end(), moves.begin(), moves.end());
+    attackingSquares.insert(moves.begin(), moves.end());
 }
 
 bool Piece::try_promote() {
@@ -223,25 +223,25 @@ void Piece::calculateLegalMoves(Board *board) {
         std::string rightTake = {static_cast<char>(current[0] + 1), upOne[1]};
 
         if (board->isPossibleMove(leftTake)) {
-            attackingSquares.push_back(leftTake);
+            attackingSquares.insert(leftTake);
         }
         if (board->isPossibleMove(rightTake)) {
-            attackingSquares.push_back(rightTake);
+            attackingSquares.insert(rightTake);
         }
         if ((board->isPossibleMove(leftTake) && board->squares[leftTake].piece && board->squares[leftTake].piece->colour
              !=
-             colour) || std::ranges::count(board->enpassantSquares, leftTake)) {
-            legalMoves.push_back(leftTake);
+             colour) || board->enpassantSquares.contains(leftTake)) {
+            legalMoves.insert(leftTake);
         }
         if ((board->isPossibleMove(rightTake) && board->squares[rightTake].piece && board->squares[rightTake].piece->
              colour
-             != colour) || std::ranges::count(board->enpassantSquares, rightTake)) {
-            legalMoves.push_back(rightTake);
+             != colour) || board->enpassantSquares.contains(rightTake)) {
+            legalMoves.insert(rightTake);
         }
         if (board->isPossibleMove(upOne) && !board->squares[upOne].piece) {
-            legalMoves.push_back(upOne);
+            legalMoves.insert(upOne);
             if (board->isPossibleMove(upTwo) && !board->squares[upTwo].piece && !hasMoved)
-                legalMoves.push_back(upTwo);
+                legalMoves.insert(upTwo);
         }
     }
 
@@ -259,14 +259,13 @@ void Piece::calculateLegalMoves(Board *board) {
             upTwoLeftOne, upTwoRightOne, upOneLeftTwo, upOneRightTwo, downOneLeftTwo, downOneRightTwo, downTwoLeftOne,
             downTwoRightOne
         };
-        attackingSquares.insert(attackingSquares.end(), legalMoves.begin(), legalMoves.end());
+        attackingSquares.insert(legalMoves.begin(), legalMoves.end());
 
         for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
-            if (std::ranges::count(board->possibleMoves, *movesIterator) != 1) {
+            if (!board->isPossibleMove(*movesIterator)) {
                 movesIterator = legalMoves.erase(movesIterator);
             } else if (board->squares[*movesIterator].piece != nullptr && board->squares[*movesIterator].piece->colour
-                       ==
-                       colour) {
+                       == colour) {
                 movesIterator = legalMoves.erase(movesIterator);
             } else {
                 ++movesIterator;
@@ -279,7 +278,6 @@ void Piece::calculateLegalMoves(Board *board) {
         calculate_attacking_row(board, current, this, LEFT);
         calculate_attacking_column(board, current, this, UP);
         calculate_attacking_column(board, current, this, DOWN);
-
     }
 
     if (type == PieceType::Bishop) {
@@ -320,39 +318,39 @@ void Piece::calculateLegalMoves(Board *board) {
         if (!hasMoved && !board->isColourChecked(colour)) {
             if (colour == PieceColor::White) {
                 if (board->whiteCanShortCastle && board->is_square_empty("F1") && board->is_square_empty("G1") &&
-                    std::ranges::count(attackedSquares, "F1") == 0) {
-                    legalMoves.emplace_back("G1");
+                    !attackedSquares.contains("F1")) {
+                    legalMoves.insert("G1");
                 }
                 if (board->whiteCanLongCastle && board->is_square_empty("B1") && board->is_square_empty("C1") && board->
-                    is_square_empty("D1") && std::ranges::count(attackedSquares, "D1") == 0) {
-                    legalMoves.emplace_back("C1");
+                    is_square_empty("D1") && !attackedSquares.contains("D1")) {
+                    legalMoves.insert("C1");
                 }
             }
             if (colour == PieceColor::Black) {
                 if (board->blackCanShortCastle && board->is_square_empty("F8") && board->is_square_empty("G8") &&
-                    std::ranges::count(attackedSquares, "F8") == 0) {
-                    legalMoves.emplace_back("G8");
+                    !attackedSquares.contains("F8")) {
+                    legalMoves.insert("G8");
                 }
                 if (board->blackCanLongCastle && board->is_square_empty("B8") && board->is_square_empty("C8") && board->
-                    is_square_empty("D8") && std::ranges::count(attackedSquares, "D8") == 0) {
-                    legalMoves.emplace_back("C8");
+                    is_square_empty("D8") && !attackedSquares.contains("D8")) {
+                    legalMoves.insert("C8");
                 }
             }
         }
-        attackingSquares.insert(attackingSquares.end(), legalMoves.begin(), legalMoves.end());
+        attackingSquares.insert(legalMoves.begin(), legalMoves.end());
 
 
         for (auto movesIterator = legalMoves.begin(); movesIterator != legalMoves.end();) {
-            if (std::ranges::count(board->possibleMoves, *movesIterator) != 1) {
+            if (!board->isPossibleMove(*movesIterator)) {
                 movesIterator = legalMoves.erase(movesIterator);
             } else if (board->squares[*movesIterator].piece != nullptr && board->squares[*movesIterator].piece->colour
                        ==
                        colour) {
                 movesIterator = legalMoves.erase(movesIterator);
             } else {
-                BoardSquare* original_square = square;
-                BoardSquare& target_square = board->squares[*movesIterator];
-                Piece* captured_piece = target_square.piece;
+                BoardSquare *original_square = square;
+                BoardSquare &target_square = board->squares[*movesIterator];
+                Piece *captured_piece = target_square.piece;
 
                 original_square->piece = nullptr;
                 target_square.piece = this;
@@ -361,10 +359,8 @@ void Piece::calculateLegalMoves(Board *board) {
                     captured_piece->captured = true;
                 }
 
-                const auto resulting_attacked_squares =
-                    board->attackedSquaresOfColor(colour);
-                const bool king_is_attacked =
-                    std::ranges::count(resulting_attacked_squares, target_square.name) > 0;
+                const auto resulting_attacked_squares = board->attackedSquaresOfColor(colour);
+                const bool king_is_attacked = resulting_attacked_squares.contains(target_square.name);
 
                 if (captured_piece != nullptr) {
                     captured_piece->captured = false;
@@ -383,8 +379,8 @@ void Piece::calculateLegalMoves(Board *board) {
     }
 }
 
-bool Piece::isLegalMove(const std::string &move) {
-    return std::ranges::count(legalMoves, move) == 1;
+bool Piece::isLegalMove(const std::string &move) const {
+    return legalMoves.contains(move);
 }
 
 void Piece::Draw(const Texture2D &piecesTexture) const {

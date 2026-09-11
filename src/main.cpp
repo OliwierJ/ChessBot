@@ -2,6 +2,7 @@
 #include <fstream>
 #include <future>
 #include <iostream>
+#include <limits>
 #include <thread>
 #include <vector>
 #include "Board.h"
@@ -179,7 +180,7 @@ int main() {
 
         // Draw held piece and its legal moves
         if (currentPiece != nullptr) {
-            for (std::string &legalMove: currentPiece->legalMoves) {
+            for (const std::string& legalMove: currentPiece->legalMoves) {
                 game.board().drawLegalMove(legalMove, currentPiece->colour);
             }
             currentPiece->Draw(piecesTexture);
@@ -199,10 +200,12 @@ int main() {
             bot_thinking = true;
             bot_task = std::async(
                 std::launch::async,
-                [board = std::move(board_snapshot),
-                    state = std::move(state_snapshot)] mutable {
-                    return Bot::choose_move(board, state, 3, std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
-                }
+                &Bot::choose_move,
+                board_snapshot,
+                state_snapshot,
+                MAX_DEPTH,
+                std::numeric_limits<float>::lowest(),
+                std::numeric_limits<float>::max()
             );
         }
 
