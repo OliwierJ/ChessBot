@@ -87,7 +87,6 @@ void Renderer::draw_pieces(ChessGame &game, const RenderState render_state) cons
         DrawText("Black's turn", 10, 10, 20, WHITE);
 }
 
-// Render game specific components
 void Renderer::draw(ChessGame &game, const Vector2 &mouse, const RenderState render_state) const {
     ClearBackground(DARKBROWN);
 

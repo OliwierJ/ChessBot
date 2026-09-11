@@ -35,7 +35,6 @@ void check_drop_position(Piece *&currentPiece, ChessGame &game) {
 }
 
 int main() {
-    // initialise
     Renderer renderer;
     SoundManager::load_sounds();
     std::cout << std::boolalpha;

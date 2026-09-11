@@ -56,7 +56,7 @@ public:
 
     void printLegalMoves() const;
 
-    void calculate_king_attacking_squares(const Board *board);
+    void calculate_king_attacking_squares();
 
     bool try_promote();
 

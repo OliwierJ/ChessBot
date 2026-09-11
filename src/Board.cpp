@@ -189,7 +189,7 @@ std::unordered_set<std::string> Board::attackedSquaresOfColor(const PieceColor c
                 piece.calculateLegalMoves(this);
             }
             if (piece.type == PieceType::King) {
-                piece.calculate_king_attacking_squares(this);
+                piece.calculate_king_attacking_squares();
             }
             allAttackedSquares.insert(piece.attackingSquares.begin(), piece.attackingSquares.end());
         }

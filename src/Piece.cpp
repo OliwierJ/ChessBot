@@ -4,6 +4,7 @@
 #include "Piece.h"
 #include "Board.h"
 #include <iostream>
+#include <vector>
 
 #pragma region private helpers
 void Piece::calculate_attacking_row(Board *board, const std::string &current, const Piece *piece,
@@ -167,7 +168,7 @@ void Piece::printLegalMoves() const {
     std::cout << "\n";
 }
 
-void Piece::calculate_king_attacking_squares(const Board *board) {
+void Piece::calculate_king_attacking_squares() {
     legalMoves.clear();
     attackingSquares.clear();
     const std::string current = square->name;
