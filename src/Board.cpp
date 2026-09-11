@@ -147,7 +147,6 @@ void Board::set_up_pieces(const Texture2D &piecesTexture) {
     addPieceToBoard(PieceType::King, PieceColor::Black, "E8", piecesTexture);
     blackKing = &pieceList.back();
 
-
     for (auto &p: pieceList) {
         p.calculateLegalMoves(this);
     }

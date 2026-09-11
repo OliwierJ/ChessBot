@@ -39,6 +39,8 @@ private:
         MoveOutcome outcome
     );
 
+    bool check_draw_by_insufficient_material() const;
+
     void update_game_status(MoveOutcome outcome);
 
     [[nodiscard]]

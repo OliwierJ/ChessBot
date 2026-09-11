@@ -10,7 +10,6 @@ ChessGame::ChessGame(const Texture2D &piecesTexture) {
 
 ChessGame::ChessGame(const Board& board, const GameState& state) : gameBoard(board), gameState(state) {}
 
-
 std::optional<MoveOutcome> ChessGame::try_move(Piece &piece, BoardSquare &target) {
     if (gameState.state != GameStatus::Normal) {
         return std::nullopt;
@@ -66,6 +65,59 @@ void ChessGame::complete_move(const Piece &piece, const BoardSquare &target, con
 
 }
 
+bool ChessGame::check_draw_by_insufficient_material() const {
+    // check draw by insufficient material
+    int white_piece_count = 0;
+    int white_knights_count = 0;
+    int white_bishop_count = 0;
+    int black_piece_count = 0;
+    int black_knights_count = 0;
+    int black_bishop_count = 0;
+    for (const auto& p : gameBoard.pieceList) {
+        if (p.captured) continue;
+        if (p.colour == PieceColor::White) {
+            if (p.type == PieceType::Knight) white_knights_count++;
+            if (p.type == PieceType::Bishop) white_bishop_count++;
+            white_piece_count++;
+        }
+        else {
+            if (p.type == PieceType::Knight) black_knights_count++;
+            if (p.type == PieceType::Bishop) black_bishop_count++;
+            black_piece_count++;
+        }
+    }
+    // king v king
+    if (white_piece_count == 1 && black_piece_count == 1) {
+        return true;
+    }
+    // b king v knight/bishop + king
+    if (black_piece_count == 1 && white_piece_count == 2 && (white_bishop_count == 1 || white_knights_count == 1)) {
+        return true;
+    }
+
+    // b king + knight/bishop v knight/bishop + king
+    if (black_piece_count == 2 && (black_bishop_count == 1 || black_knights_count == 1) && white_piece_count == 2 && (white_bishop_count == 1 || white_knights_count == 1)) {
+        return true;
+    }
+
+    // b king v 2 knight + king
+    if (black_piece_count == 1 && white_piece_count == 3 && white_knights_count == 2) {
+        return true;
+    }
+
+    // w king v knight/bishop + king
+    if (white_piece_count == 1 && black_piece_count == 2 && (black_bishop_count == 1 || black_knights_count == 1)) {
+        return true;
+    }
+
+    // w king v 2 knight + king
+    if (white_piece_count == 1 && black_piece_count == 3 && black_knights_count == 2) {
+        return true;
+    }
+
+    return false;
+}
+
 void ChessGame::update_game_status(const MoveOutcome outcome) {
 
     // increment turn count on blacks move
@@ -74,6 +126,11 @@ void ChessGame::update_game_status(const MoveOutcome outcome) {
     // check if 50 moves since a pawn move or capture
     if (gameState.turn_counter - gameState.last_pawn_or_capture >= 50) {
         gameState.state = GameStatus::Stalemate; return;
+    }
+
+    if (check_draw_by_insufficient_material()) {
+        gameState.state = GameStatus::Stalemate;
+        return;
     }
 
     if (outcome.pieceTaken || outcome.pawnMoved) gameState.last_pawn_or_capture = gameState.turn_counter;
@@ -114,7 +171,7 @@ std::string ChessGame::create_notation(const Piece &piece, const BoardSquare &ta
     } else {
         move_notation = {piece.getPieceNotation(), move_notation[0], move_notation[1]};
     }
-
+    if (outcome.pawnPromoted) move_notation += "=Q";
     if (gameBoard.isColourChecked(opposite(gameState.turn)) && gameState.state != GameStatus::Checkmate) move_notation += '+';
     if (gameState.state == GameStatus::Checkmate) move_notation += '#';
 

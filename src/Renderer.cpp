@@ -191,7 +191,7 @@ void Renderer::draw_taken_material(const Board &board) const {
     int black_taken_idx = 0;
     int white_material_taken = 0;
     int black_material_taken = 0;
-    constexpr int gap = 15;
+    constexpr int gap = 20;
 
     for (const auto &piece: board.pieceList) {
         if (piece.captured) {
