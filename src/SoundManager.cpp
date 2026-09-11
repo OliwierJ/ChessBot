@@ -1,7 +1,3 @@
-//
-// Created by papie on 23/08/2026.
-//
-
 #include "SoundManager.h"
 #include "ChessGame.h"
 #include "embedded_resources.h"

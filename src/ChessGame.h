@@ -1,12 +1,7 @@
-//
-// Created by papie on 22/08/2026.
-//
-
 #ifndef CHESSBOT_CHESSGAME_H
 #define CHESSBOT_CHESSGAME_H
 #include <optional>
 #include <string>
-
 #include "Board.h"
 #include "GameState.h"
 #include "MoveValidator.h"

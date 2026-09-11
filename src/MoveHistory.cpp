@@ -1,7 +1,3 @@
-//
-// Created by papie on 19/08/2026.
-//
-
 #include "MoveHistory.h"
 #include <iostream>
 

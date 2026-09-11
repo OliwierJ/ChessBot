@@ -1,19 +1,12 @@
-//
-// Created by papie on 23/08/2026.
-//
-
 #include "Bot.h"
-
 #include <algorithm>
 #include <limits>
 #include <random>
-
 #include "Board.h"
 #include "BoardSquare.h"
 #include "ChessGame.h"
 #include "MoveValidator.h"
 #include "Piece.h"
-
 
 std::unordered_set<std::string> central_squares = {"C4", "C5", "D4", "D5", "E4", "E5", "F4", "F5"};
 constexpr int checkmate_score = 100000;

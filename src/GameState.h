@@ -1,7 +1,3 @@
-//
-// Created by papie on 04/05/2026.
-//
-
 #ifndef CHESSBOT_GAMESTATE_H
 #define CHESSBOT_GAMESTATE_H
 #include "MoveHistory.h"

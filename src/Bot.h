@@ -1,7 +1,3 @@
-//
-// Created by papie on 23/08/2026.
-//
-
 #ifndef CHESSBOT_BOT_H
 #define CHESSBOT_BOT_H
 #ifndef CHESSBOT_MAX_DEPTH

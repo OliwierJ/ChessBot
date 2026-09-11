@@ -1,12 +1,7 @@
-//
-// Created by papie on 23/08/2026.
-//
-
 #ifndef CHESSBOT_SOUNDMANAGER_H
 #define CHESSBOT_SOUNDMANAGER_H
 #include "MoveValidator.h"
 #include "raylib.h"
-
 
 class ChessGame;
 

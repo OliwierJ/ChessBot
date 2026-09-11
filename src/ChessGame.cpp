@@ -1,8 +1,3 @@
-//
-// Created by papie on 22/08/2026.
-//
-
-#include <thread>
 #include "ChessGame.h"
 #include "Board.h"
 #include "GameState.h"
