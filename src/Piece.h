@@ -66,8 +66,6 @@ public:
 
     bool isLegalMove(const std::string& move) const;
 
-    void Draw(const Texture2D &piecesTexture) const;
-
     void reset_position();
 
     [[nodiscard]]

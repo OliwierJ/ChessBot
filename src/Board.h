@@ -5,8 +5,6 @@
 #include <deque>
 #include <map>
 #include <string>
-#include <vector>
-
 #include "BoardSquare.h"
 #include "Piece.h"
 
@@ -17,7 +15,6 @@ static std::map<int, std::string> numToLetter = {
 };
 
 class Board {
-    const float MOVE_CIRCLE = 15;
 public:
     std::map<std::string, BoardSquare> squares;
     std::unordered_set<std::string> possibleMoves;
@@ -26,7 +23,6 @@ public:
     Piece* blackKing{};
     bool whiteIsChecked = false;
     bool blackIsChecked = false;
-    // std::vector<Piece>* pieceList;
 
     // Board constructor. Initialises the board squares
     Board();
@@ -36,14 +32,6 @@ public:
     Board(const Board &other);
 
     void clear_board();
-
-    // Draw the board itself
-    static void Draw();
-
-    void draw_taken_material(const Texture2D &texture) const;
-
-    // Draws the move circle for a legal move
-    void drawLegalMove(const std::string &notation, PieceColor colour);
 
     // Checks if the given move is on the board
     bool isPossibleMove(const std::string& move) const;

@@ -10,13 +10,9 @@
 constexpr int MOVES_DRAW_LIMIT = 30;
 
 class MoveHistory {
-    std::vector<std::string> movesList;
 
 public:
-
-    // Draw the moves list box
-    void draw() const;
-
+    std::vector<std::string> movesList;
     // Add move notation to the move list
     void append_move(const std::string &notation);
 

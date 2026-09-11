@@ -37,28 +37,6 @@ std::optional<MoveOutcome> ChessGame::try_move(Piece &piece, BoardSquare &target
     return outcome;
 }
 
-// std::optional<MoveOutcome> ChessGame::perform_bot_move() {
-//     bool found_piece = false;
-//     Piece *random_piece = nullptr;
-//     std::string move;
-//
-//     // Bot behaviour
-//     while (!found_piece) {
-//         const int randomPieceIndex = std::rand() % gameBoard.pieceList.size();
-//         random_piece = &gameBoard.pieceList[randomPieceIndex];
-//         if (random_piece->captured) continue;
-//         if (random_piece->colour != gameState.turn) continue;
-//         if (random_piece->legalMoves.empty()) continue;
-//
-//         const int randomMoveIndex = std::rand() % random_piece->legalMoves.size();
-//         move = random_piece->legalMoves[randomMoveIndex];
-//         found_piece = true;
-//     }
-//
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//     return try_move(*random_piece, gameBoard.squares[move]);
-// }
-
 const Board &ChessGame::board() const {
     return gameBoard;
 }

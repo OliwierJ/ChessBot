@@ -103,6 +103,8 @@ add_executable(${PROJECT_NAME}
         src/Bot.cpp
         src/Bot.h
         "${EMBEDDED_RESOURCES_HEADER}"
+        src/Renderer.cpp
+        src/Renderer.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

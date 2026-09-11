@@ -6,7 +6,7 @@
 
 void GameState::reset_state() {
     turn = PieceColor::White;
-    state = GameStatus::Normal;
+    state = GameStatus::Menu;
     winner = std::nullopt;
     move_history.clear_history();
     evaluation = 0;

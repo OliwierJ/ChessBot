@@ -1,8 +1,6 @@
 #include "Board.h"
-
 #include <iostream>
 #include <stdexcept>
-
 #include "Piece.h"
 
 Board::Board() {
@@ -70,73 +68,6 @@ void Board::clear_board() {
     whiteIsChecked = false;
     blackIsChecked = false;
     pieceList.clear();
-}
-
-void Board::Draw() {
-    for (int i = 1; i <= 8; i++) {
-        for (int j = 1; j <= 8; j++) {
-            const Color colour = (i + j) % 2 == 0 ? WHITE : GRAY;
-            DrawRectangle(SQUARE_SIZE * j, SQUARE_SIZE * i, SQUARE_SIZE, SQUARE_SIZE, colour);
-        }
-    }
-    for (int i = 1; i <= 8; i++) {
-        const char* letters[] = {"A", "B", "C", "D", "E", "F", "G", "H"};
-        DrawText(letters[i - 1], (SQUARE_SIZE * i) + 30, 680, 16, WHITE);
-    }
-
-    for (int i = 1; i <= 8; i++) {
-        const char* numbers[] = {"1", "2", "3", "4", "5", "6", "7", "8"};
-        DrawText(numbers[i - 1], 60, (SQUARE_SIZE * i) + 30, 16, WHITE);
-    }
-}
-
-void Board::draw_taken_material(const Texture2D &texture) const {
-    constexpr Vector2 white_taken = {80, 40};
-    constexpr Vector2 black_taken = {80, 700};
-    int white_taken_idx = 0;
-    int black_taken_idx = 0;
-    int white_material_taken = 0;
-    int black_material_taken = 0;
-    constexpr int gap = 20;
-
-    for (const auto& piece : pieceList) {
-        if (piece.captured) {
-            // if (i > 0 && piece.type == pieceList.at(i-1).type) gap = 10;
-
-            if (piece.colour == PieceColor::White) {
-                black_material_taken += piece.value;
-                DrawTexturePro(texture, piece.pieceTexture,
-                               {white_taken.x + gap * white_taken_idx, white_taken.y, 25, 25}, {0, 0}, 0, WHITE);
-                white_taken_idx++;
-            } else {
-                DrawTexturePro(texture, piece.pieceTexture,
-                               {black_taken.x + gap * black_taken_idx, black_taken.y, 25, 25}, {0, 0}, 0, WHITE);
-                white_material_taken += piece.value;
-                black_taken_idx++;
-            }
-        }
-    }
-    const int white_advantage = white_material_taken - black_material_taken;
-    const int black_advantage = black_material_taken - white_material_taken;
-    const std::string white_text = "+" + std::to_string(white_advantage);
-    const std::string black_text = "+" + std::to_string(black_advantage);
-    if (white_advantage > 0)
-        DrawText(white_text.c_str(), black_taken.x + gap * black_taken_idx, black_taken.y + 5, 20,
-                 WHITE);
-    if (black_advantage > 0)
-        DrawText(black_text.c_str(), white_taken.x + gap * white_taken_idx, white_taken.y + 5, 20,
-                 WHITE);
-}
-
-
-void Board::drawLegalMove(const std::string &notation, const PieceColor colour) {
-    const auto [x, y, width, height] = squares[notation].squareBox;
-    if (squares[notation].piece != nullptr && squares[notation].piece->colour != colour) {
-        DrawCircle(x + width / 2, y + height / 2, MOVE_CIRCLE, {100, 100, 100, 150});
-    }
-    if (squares[notation].piece == nullptr) {
-        DrawCircle(x + width / 2, y + height / 2, MOVE_CIRCLE, {100, 100, 100, 150});
-    }
 }
 
 bool Board::isPossibleMove(const std::string &move) const {

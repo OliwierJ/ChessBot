@@ -383,16 +383,9 @@ bool Piece::isLegalMove(const std::string &move) const {
     return legalMoves.contains(move);
 }
 
-void Piece::Draw(const Texture2D &piecesTexture) const {
-    if (!captured) {
-        DrawTexturePro(piecesTexture, pieceTexture, textureDest, {0, 0}, 0, WHITE);
-    } else {
-        DrawTexturePro(piecesTexture, pieceTexture, textureDest, {0, 0}, 0, BLANK);
-    }
-}
-
 void Piece::reset_position() {
     setCurrentPos({square->squareBox.x, square->squareBox.y});
+    isCurrentlyHeld = false;
 }
 
 [[nodiscard]]

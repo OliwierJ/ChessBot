@@ -14,6 +14,7 @@ Sound SoundManager::promoteSound = {};
 Sound SoundManager::gameEndSound = {};
 
 void SoundManager::load_sounds() {
+    InitAudioDevice();
     auto load_sound = [](const char *fileType, const unsigned char *data, const std::size_t size) {
         const Wave wave = LoadWaveFromMemory(fileType, data, static_cast<int>(size));
         const Sound sound = LoadSoundFromWave(wave);
@@ -51,4 +52,5 @@ void SoundManager::unload_sounds() {
     UnloadSound(captureSound);
     UnloadSound(promoteSound);
     UnloadSound(gameEndSound);
+    CloseAudioDevice();
 }
