@@ -80,11 +80,13 @@ void Board::Draw() {
         }
     }
     for (int i = 1; i <= 8; i++) {
-        DrawText(numToLetter[i].c_str(), (SQUARE_SIZE * i) + 30, 680, 16, WHITE);
+        const char* letters[] = {"A", "B", "C", "D", "E", "F", "G", "H"};
+        DrawText(letters[i - 1], (SQUARE_SIZE * i) + 30, 680, 16, WHITE);
     }
 
     for (int i = 1; i <= 8; i++) {
-        DrawText(std::to_string(abs(i - 9)).c_str(), 60, (SQUARE_SIZE * i) + 30, 16, WHITE);
+        const char* numbers[] = {"1", "2", "3", "4", "5", "6", "7", "8"};
+        DrawText(numbers[i - 1], 60, (SQUARE_SIZE * i) + 30, 16, WHITE);
     }
 }
 
@@ -95,10 +97,9 @@ void Board::draw_taken_material(const Texture2D &texture) const {
     int black_taken_idx = 0;
     int white_material_taken = 0;
     int black_material_taken = 0;
-    int gap = 20;
+    constexpr int gap = 20;
 
-    for (int i = 0; i < pieceList.size(); i++) {
-        const Piece piece = pieceList.at(i);
+    for (const auto& piece : pieceList) {
         if (piece.captured) {
             // if (i > 0 && piece.type == pieceList.at(i-1).type) gap = 10;
 

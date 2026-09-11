@@ -19,7 +19,7 @@ struct BotMove {
     std::string target;
 };
 
-constexpr int MAX_DEPTH = 3;
+constexpr int MAX_DEPTH = 4;
 
 class Bot {
 public:

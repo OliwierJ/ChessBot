@@ -3,8 +3,6 @@
 #include <future>
 #include <iostream>
 #include <limits>
-#include <thread>
-#include <vector>
 #include "Board.h"
 #include "Bot.h"
 #include "ChessGame.h"
@@ -101,20 +99,19 @@ void render_menu(ChessGame &game, const Vector2 mouse) {
 int main() {
     // initialise
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, TITLE);
+    SetTargetFPS(60);
     InitAudioDevice();
     SoundManager::load_sounds();
     std::cout << std::boolalpha;
     const Image piecesImage = LoadImageFromMemory(".png", Chess_Pieces_Sprite_png, Chess_Pieces_Sprite_png_size);
     const Texture2D piecesTexture = LoadTextureFromImage(piecesImage);
     UnloadImage(piecesImage);
-    srand(time(nullptr));
 
     ChessGame game(piecesTexture);
     Piece *currentPiece = nullptr;
 
     bool bot_thinking = false;
     std::future<std::optional<BotMove>> bot_task;
-
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -141,9 +138,7 @@ int main() {
             continue;
         }
 
-
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            // std::cout << "X: " << mouse.x << "Y: " << mouse.y << "\n";
             for (auto &p: game.board().pieceList) {
                 if (p.captured) continue;
                 if (game.state().turn != p.colour) continue;
@@ -158,6 +153,8 @@ int main() {
         }
         // Move held piece with cursor
         for (auto &p: game.board().pieceList) {
+            if (p.captured) continue;
+
             if (p.isCurrentlyHeld) {
                 if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                     p.setCurrentPos({mouse.x - p.boundingBox.width / 2, mouse.y - p.boundingBox.height / 2});
@@ -171,11 +168,6 @@ int main() {
 
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             check_drop_position(currentPiece, game);
-            Board::Draw();
-            game.state().move_history.draw();
-            for (auto &p: game.board().pieceList) {
-                p.Draw(piecesTexture);
-            }
         }
 
         // Draw held piece and its legal moves

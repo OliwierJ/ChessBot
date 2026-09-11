@@ -111,3 +111,13 @@ target_include_directories(${PROJECT_NAME}
         PRIVATE
         "${CMAKE_CURRENT_BINARY_DIR}"
 )
+
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    message(" ")
+    message("CMAKE IN DEBUG MODE")
+    message(" ")
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+    message(" ")
+    message("CMAKE IN RELEASE MODE")
+    message(" ")
+endif ()
