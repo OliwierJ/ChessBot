@@ -107,6 +107,11 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+        $<$<CONFIG:Debug>:CHESSBOT_MAX_DEPTH=2>
+        $<$<CONFIG:Release>:CHESSBOT_MAX_DEPTH=4>
+)
+
 target_include_directories(${PROJECT_NAME}
         PRIVATE
         "${CMAKE_CURRENT_BINARY_DIR}"

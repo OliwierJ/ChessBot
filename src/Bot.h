@@ -4,11 +4,14 @@
 
 #ifndef CHESSBOT_BOT_H
 #define CHESSBOT_BOT_H
+#ifndef CHESSBOT_MAX_DEPTH
+#define CHESSBOT_MAX_DEPTH 2
+#endif
 #include <optional>
-
 #include "BoardSquare.h"
 #include "ChessGame.h"
 #include "Piece.h"
+
 
 struct MoveOutcome;
 class Piece;
@@ -19,7 +22,7 @@ struct BotMove {
     std::string target;
 };
 
-constexpr int MAX_DEPTH = 4;
+constexpr int MAX_DEPTH = CHESSBOT_MAX_DEPTH;
 
 class Bot {
 public:

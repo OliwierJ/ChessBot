@@ -167,7 +167,7 @@ void Piece::printLegalMoves() const {
     std::cout << "\n";
 }
 
-void Piece::calculate_king_attacking_squares(Board *board) {
+void Piece::calculate_king_attacking_squares(const Board *board) {
     legalMoves.clear();
     attackingSquares.clear();
     const std::string current = square->name;
@@ -198,7 +198,7 @@ bool Piece::try_promote() {
         constexpr int queenIndex = static_cast<int>(PieceType::Queen);
 
         pieceTexture = {
-            (pieceTexture.x / pawnIndex) * queenIndex,
+            pieceTexture.x / pawnIndex * queenIndex,
             pieceTexture.y,
             pieceTexture.width,
             pieceTexture.height

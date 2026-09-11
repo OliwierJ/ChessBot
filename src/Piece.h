@@ -50,13 +50,6 @@ public:
     PieceType type;
     int value;
 
-    void calculate_attacking_row(Board *board, const std::string &current, const Piece *piece, int direction);
-
-    void calculate_attacking_column(Board *board, const std::string &current, const Piece *piece, int direction);
-
-    void calculate_attacking_diagonal(Board *board, const std::string &current, const Piece *piece, int leftOrRight,
-                                      int upOrDown);
-
     static int getMaterialValue(PieceType type);
 
     Piece(PieceType type, PieceColor pieceColour, BoardSquare &square, const Texture2D &texture);
@@ -65,7 +58,7 @@ public:
 
     void printLegalMoves() const;
 
-    void calculate_king_attacking_squares(Board *board);
+    void calculate_king_attacking_squares(const Board *board);
 
     bool try_promote();
 
@@ -96,6 +89,9 @@ private:
     const int RIGHT = 1;
     const int LEFT = -1;
     static Rectangle getPieceRect(const Texture2D &piecesTexture, PieceType piece, PieceColor colour);
+    void calculate_attacking_row(Board *board, const std::string &current, const Piece *piece, int direction);
+    void calculate_attacking_column(Board *board, const std::string &current, const Piece *piece, int direction);
+    void calculate_attacking_diagonal(Board *board, const std::string &current, const Piece *piece, int leftOrRight,int upOrDown);
 };
 
 #endif

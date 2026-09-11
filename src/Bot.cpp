@@ -16,6 +16,7 @@
 
 
 std::unordered_set<std::string> central_squares = {"C4", "C5", "D4", "D5", "E4", "E5", "F4", "F5"};
+constexpr int checkmate_score = 100000;
 
 std::vector<BotMove> Bot::get_legal_moves(const PieceColor colour, const Board &board) {
     std::vector<BotMove> legal_moves;
@@ -44,8 +45,6 @@ std::vector<BotMove> Bot::get_legal_moves(const PieceColor colour, const Board &
 }
 
 float Bot::calculate_position(const Board &board, const GameState &state) {
-    constexpr int checkmate_score = 100000;
-
     if (state.state == GameStatus::Checkmate) {
         return state.winner == PieceColor::White
                    ? checkmate_score
@@ -58,6 +57,7 @@ float Bot::calculate_position(const Board &board, const GameState &state) {
 
     float score = 0;
 
+    // loop pieces
     for (const Piece &piece: board.pieceList) {
         if (piece.captured) {
             continue;
@@ -66,31 +66,44 @@ float Bot::calculate_position(const Board &board, const GameState &state) {
         const int value = piece.value;
         score += piece.colour == PieceColor::White ? value : -value;
         float square_control = 0;
+
+        // Loop attacking squares
         for (const auto& m: piece.attackingSquares) {
             if (central_squares.contains(m)) {
                 square_control += 0.018;
             } else {
                 square_control += 0.002;
             }
+
+            // give points for attacking enemy pieces
+            if (board.square_contains_opponent_piece(m, piece.colour)) {
+                square_control += 0.02;
+            }
         }
+
+        // give points for controlling central squares
         if (central_squares.contains(piece.square->name)) {
             square_control += 0.01;
         }
 
+        // give points for moving unmoved pieces
         if (piece.hasMoved && piece.type != PieceType::King && piece.type != PieceType::Queen) {
             score += piece.colour == PieceColor::White ? 0.01 : -0.01;
         }
+
+        // take away points for moving king
         if (piece.hasMoved && piece.type == PieceType::King) {
             score -= piece.colour == PieceColor::White ? 1 : -1;
         }
+
         score += piece.colour == PieceColor::White ? square_control : -square_control;
     }
 
     if (state.black_castled) {
-        score += -1;
+        score += -2;
     }
     if (state.white_castled) {
-        score += 0.5;
+        score += 2;
     }
 
     return score;

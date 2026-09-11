@@ -272,3 +272,10 @@ void Board::addBothKings() {
     addPieceToBoard(PieceType::King, PieceColor::White, "E8", {200, 200});
     blackKing = &pieceList.back();
 }
+
+bool Board::square_contains_opponent_piece(const std::string &square, const PieceColor colour) const {
+    if (!isPossibleMove(square)) return false;
+    const auto piece = squares.at(square).piece;
+    if (piece == nullptr) return false;
+    return !piece->captured && piece->colour != colour;
+}

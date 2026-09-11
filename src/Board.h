@@ -78,6 +78,8 @@ public:
     std::unordered_set<std::string> attackedSquaresOfColor(PieceColor colour);
 
     void addBothKings();
+
+    bool square_contains_opponent_piece(const std::string& square, PieceColor colour) const;
 };
 
 #endif //CHESSBOT_BOARD_H
