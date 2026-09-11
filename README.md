@@ -12,7 +12,6 @@ ChessBot is a local C++23 chess game built with [raylib](https://www.raylib.com/
 - Check, checkmate, and stalemate detection.
 - Move history displayed in the game window using compact algebraic-style notation.
 - Audio feedback for moves, captures, checks, illegal moves, promotion, and game end.
-- Human White versus a random-move Black bot by default.
 
 ## Requirements
 
@@ -59,10 +58,7 @@ The tests cover board setup, piece movement, captures, check restrictions, and b
 - `src/ChessGame.*`: turn handling, move orchestration, notation, and end-game status.
 - `src/Board.*`: board model, square lookup, legal-move calculation, and board rendering.
 - `src/Piece.*`: piece state, movement generation, promotion, and attack helpers.
-- `src/MoveValidator.*`: legal-move checks and move application.
-- `src/BoardSquare.*`: square coordinates, rectangles, and occupied-piece state.
-- `src/MoveHistory.*`: move storage and on-screen history rendering.
-- `src/GameState.*`: turn, game status, winner, and bot-mode state.
+- `src/Renderer.*`: handles all rendering of raylib components and menu selection.
 - `src/SoundManager.*`: embedded sound loading and playback.
 - `tests/`: Catch2 unit tests.
 - `resources/`: the sprite sheet and sound effects embedded at configure time.
@@ -70,13 +66,11 @@ The tests cover board setup, piece movement, captures, check restrictions, and b
 ## Known Limitations
 
 - Promotion always selects a queen; there is no promotion-choice UI.
-- The bot chooses moves randomly and has no search or position evaluation.
-- The game is configured for bot mode by default; there is no start screen or two-player mode selector.
+- The bot move selection is intensive and slow
 - The move history displays a moving window and cannot be scrolled manually.
-- The end-game overlay displays a `Restart` control, but restarting is not wired up yet.
 
 ## Roadmap
 
-1. Add game reset and a start screen.
-2. Add a two-player mode selector.
-3. Replace random bot moves with search and position evaluation.
+1. Add remaining chess rules
+2. Increase bot performance
+3. Improve input handling
