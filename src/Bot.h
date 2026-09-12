@@ -13,9 +13,21 @@ struct MoveOutcome;
 class Piece;
 class BoardSquare;
 
+enum class BoundType {
+    LowerBound = 0,
+    UpperBound = 1,
+    Exact = 2
+};
+
 struct BotMove {
     std::string from;
     std::string target;
+};
+
+struct TranspositionEntry {
+    float eval;
+    int depth;
+    BoundType bound;
 };
 
 constexpr int MAX_DEPTH = CHESSBOT_MAX_DEPTH;
@@ -26,7 +38,8 @@ public:
 
     static float calculate_position(const Board &board, const GameState &state);
 
-    static std::optional<BotMove> choose_move(const Board &board, const GameState &state, int depth, float alpha, float beta);
+    static std::optional<BotMove> choose_move(const Board &board, const GameState &state, int depth, float alpha,
+                                              float beta);
 
 private:
     struct MoveRecord {
@@ -77,6 +90,8 @@ private:
     static void update_game_state(Board &board, GameState &state, const MoveOutcome &outcome);
 
     static float minimax(Board &board, GameState &state, int depth, float alpha, float beta);
+
+    static std::unordered_map<size_t, TranspositionEntry> hashed_positions;
 };
 
 

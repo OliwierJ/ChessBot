@@ -112,7 +112,7 @@ int main() {
             bot_thinking = false;
         }
     }
-
     SoundManager::unload_sounds();
+    CloseWindow();
     return 0;
 }

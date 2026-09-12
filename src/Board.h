@@ -2,12 +2,14 @@
 #define CHESSBOT_BOARD_H
 
 #include <algorithm>
+#include <cstdint>
 #include <deque>
 #include <map>
 #include <string>
 #include "BoardSquare.h"
 #include "Piece.h"
 
+class GameState;
 constexpr int SQUARE_SIZE = 75;
 
 static std::map<int, std::string> numToLetter = {
@@ -55,7 +57,9 @@ public:
 
     std::unordered_set<std::string> enpassantSquares = {};
 
-    size_t generate_hash() const;
+    size_t generate_hash(const GameState &state) const;
+
+    static int get_square_index(const std::string &square);
 
     [[nodiscard]]
     bool isColourChecked(PieceColor colour) const;

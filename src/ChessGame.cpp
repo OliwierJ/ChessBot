@@ -1,15 +1,32 @@
 #include "ChessGame.h"
-
 #include <iostream>
-
+#include <random>
 #include "Board.h"
 #include "GameState.h"
 #include "MoveValidator.h"
+#include "Zobrist.h"
 
 
 ChessGame::ChessGame(const Texture2D &piecesTexture) {
     board().set_up_pieces(piecesTexture);
-    gameState.position_table[gameBoard.generate_hash()]++;
+    std::mt19937_64 generator(0x1234567);
+    std::uniform_int_distribution<uint64_t> distribution;
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 6; j++) {
+            for (int k = 0; k < 64; k++) {
+                Zobrist::pieces_hash[i][j][k] = distribution(generator);
+            }
+        }
+    }
+    for (int i = 0; i < 4; i++) {
+        Zobrist::castling_hash[i] = distribution(generator);
+    }
+    for (int i = 0; i < 8; i++) {
+        Zobrist::enpassant_file_hash[i] = distribution(generator);
+    }
+    Zobrist::side_to_move_hash = distribution(generator);
+
+    gameState.position_table[gameBoard.generate_hash(gameState)]++;
 }
 
 ChessGame::ChessGame(const Board& board, const GameState& state) : gameBoard(board), gameState(state) {}
@@ -51,7 +68,7 @@ void ChessGame::restart_game(const Texture2D &pieceTexture) {
     gameBoard.clear_board();
     gameBoard.set_up_pieces(pieceTexture);
     gameState.reset_state();
-    gameState.position_table[gameBoard.generate_hash()]++;
+    gameState.position_table[gameBoard.generate_hash(gameState)]++;
 }
 
 void ChessGame::complete_move(const Piece &piece, const BoardSquare &target, const std::string &previousPosition,
@@ -138,7 +155,7 @@ void ChessGame::update_game_status(const MoveOutcome outcome) {
         return;
     }
 
-    const auto new_hash = gameBoard.generate_hash();
+    const auto new_hash = gameBoard.generate_hash(gameState);
     gameState.position_table[new_hash]++;
     if (gameState.position_table[new_hash] == 3) {
         gameState.state = GameStatus::Draw;

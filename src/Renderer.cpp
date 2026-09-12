@@ -19,7 +19,6 @@ Renderer::Renderer() {
 
 Renderer::~Renderer() {
     UnloadTexture(piecesTexture);
-    CloseWindow();
 }
 
 void Renderer::draw_end_game_state(ChessGame &game, const Vector2 mouse) const {
@@ -58,7 +57,7 @@ void Renderer::draw_board() {
         DrawText(letters[i - 1], SQUARE_SIZE * i + 30, 680, 16, WHITE);
     }
 
-    for (int i = 1; i <= 8; i++) {
+    for (int i = 8; i >= 1; i--) {
         const char *numbers[] = {"1", "2", "3", "4", "5", "6", "7", "8"};
         DrawText(numbers[i - 1], 60, SQUARE_SIZE * i + 30, 16, WHITE);
     }

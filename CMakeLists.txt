@@ -105,6 +105,8 @@ add_executable(${PROJECT_NAME}
         "${EMBEDDED_RESOURCES_HEADER}"
         src/Renderer.cpp
         src/Renderer.h
+        src/Zobrist.cpp
+        src/Zobrist.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

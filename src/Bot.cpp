@@ -9,6 +9,8 @@
 #include "Piece.h"
 
 std::unordered_set<std::string> central_squares = {"C4", "C5", "D4", "D5", "E4", "E5", "F4", "F5"};
+std::unordered_map<size_t, TranspositionEntry> Bot::hashed_positions;
+
 constexpr int checkmate_score = 100000;
 
 std::vector<BotMove> Bot::get_legal_moves(const PieceColor colour, const Board &board) {
@@ -63,20 +65,20 @@ float Bot::calculate_position(const Board &board, const GameState &state) {
         // Loop attacking squares
         for (const auto& m: piece.attackingSquares) {
             if (central_squares.contains(m)) {
-                square_control += 0.018;
+                square_control += 0.008;
             } else {
                 square_control += 0.002;
             }
 
             // give points for attacking enemy pieces
             if (board.square_contains_opponent_piece(m, piece.colour)) {
-                square_control += 0.02;
+                square_control += 0.002;
             }
         }
 
         // give points for controlling central squares
         if (central_squares.contains(piece.square->name)) {
-            square_control += 0.01;
+            square_control += 0.001;
         }
 
         // give points for moving unmoved pieces
@@ -86,7 +88,7 @@ float Bot::calculate_position(const Board &board, const GameState &state) {
 
         // take away points for moving king
         if (piece.hasMoved && piece.type == PieceType::King) {
-            score -= piece.colour == PieceColor::White ? 1 : -1;
+            score -= piece.colour == PieceColor::White ? 0.5 : -0.5;
         }
 
         score += piece.colour == PieceColor::White ? square_control : -square_control;
@@ -284,6 +286,7 @@ std::optional<BotMove> Bot::choose_move(const Board &board, const GameState &sta
     Board search_board = board;
     GameState search_state = state;
 
+
     const auto legal_moves = get_legal_moves(search_state.turn, search_board);
     if (legal_moves.empty()) {
         return std::nullopt;
@@ -338,7 +341,32 @@ float Bot::minimax(Board &board, GameState &state, const int depth, float alpha,
         return calculate_position(board, state);
     }
 
+    const float original_alpha = alpha;
+    const float original_beta = beta;
+    const size_t hash = board.generate_hash(state);
+
+    if (const auto iterator = hashed_positions.find(hash);
+        iterator != hashed_positions.end() &&
+        iterator->second.depth >= depth) {
+        const TranspositionEntry& entry = iterator->second;
+
+        if (entry.bound == BoundType::Exact) {
+            return entry.eval;
+        }
+
+        if (entry.bound == BoundType::LowerBound) {
+            alpha = std::max(alpha, entry.eval);
+        } else if (entry.bound == BoundType::UpperBound) {
+            beta = std::min(beta, entry.eval);
+        }
+
+        if (alpha >= beta) {
+            return entry.eval;
+        }
+    }
+
     const auto moves = get_legal_moves(state.turn, board);
+    
     if (moves.empty()) {
         return calculate_position(board, state);
     }
@@ -357,6 +385,7 @@ float Bot::minimax(Board &board, GameState &state, const int depth, float alpha,
 
         evaluated_any_move = true;
         const float score = minimax(board, state, depth - 1, alpha, beta);
+        hashed_positions[board.generate_hash(state)] = {score, depth};
         undo_move(board, state, record);
 
         if (maximizing) {
@@ -372,6 +401,25 @@ float Bot::minimax(Board &board, GameState &state, const int depth, float alpha,
         }
     }
 
+    auto bound = BoundType::Exact;
+
+    if (best_score <= original_alpha) {
+        bound = BoundType::UpperBound;
+    } else if (best_score >= original_beta) {
+        bound = BoundType::LowerBound;
+    }
+
+    auto iterator = hashed_positions.find(hash);
+
+    if (iterator == hashed_positions.end() ||
+        iterator->second.depth <= depth) {
+        hashed_positions[hash] = {
+            best_score,
+            depth,
+            bound
+        };
+    }
+    
     if (!evaluated_any_move) {
         return calculate_position(board, state);
     }

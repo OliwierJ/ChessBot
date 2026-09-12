@@ -1,7 +1,10 @@
 #include "Board.h"
 #include <iostream>
 #include <stdexcept>
+
+#include "GameState.h"
 #include "Piece.h"
+#include "Zobrist.h"
 
 Board::Board() {
     possibleMoves.reserve(64);
@@ -152,29 +155,38 @@ void Board::set_up_pieces(const Texture2D &piecesTexture) {
     }
 }
 
-size_t Board::generate_hash() const {
-    size_t hash = 0;
+uint64_t Board::generate_hash(const GameState& state) const {
+    uint64_t hash = 0;
 
     for (const auto& p : pieceList) {
-        const char c = p.getPieceNotation();
-        std::string s = p.square->name;
-        int piece = p.colour == PieceColor::White ? 1 : 2;
-        piece = (piece * 10 + c) * 10;
-        piece = piece * 10 + s[0];
-        piece = piece * 100 + s[1];
-        hash += piece;
-    }
-    hash += whiteCanShortCastle;
-    hash += whiteCanLongCastle;
-    hash += blackCanShortCastle;
-    hash += blackCanLongCastle;
+        if (p.captured) continue;
 
-    for (const auto& e : enpassantSquares) {
-        int s = e[0];
-        s = s * 10 + e[1];
-        hash += s;
+        const int colour = static_cast<int>(p.colour);
+        const int type = static_cast<int>(p.type);
+        const int square = get_square_index(p.square->name);
+
+        hash ^= Zobrist::pieces_hash[colour][type][square];
     }
+
+    if (whiteCanShortCastle) hash ^= Zobrist::castling_hash[0];
+    if (whiteCanLongCastle)  hash ^= Zobrist::castling_hash[1];
+    if (blackCanShortCastle) hash ^= Zobrist::castling_hash[2];
+    if (blackCanLongCastle)  hash ^= Zobrist::castling_hash[3];
+
+    if (static_cast<int>(state.turn)) hash ^= Zobrist::side_to_move_hash;
+
+    for (const auto& square : enpassantSquares) {
+        const int file = square[0] - 'A';
+        hash ^= Zobrist::enpassant_file_hash[file];
+    }
+
     return hash;
+}
+
+int Board::get_square_index(const std::string& square) {
+    const int file = square[0] - 'A';
+    const int rank = square[1] - '1';
+    return rank * 8 + file;
 }
 
 bool Board::isColourChecked(const PieceColor colour) const {
