@@ -113,7 +113,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:CHESSBOT_MAX_DEPTH=2>
-        $<$<CONFIG:Release>:CHESSBOT_MAX_DEPTH=4>
+        $<$<CONFIG:Release>:CHESSBOT_MAX_DEPTH=5>
 )
 
 target_include_directories(${PROJECT_NAME}

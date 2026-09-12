@@ -138,9 +138,8 @@ void Piece::remove_moves_leading_to_checks(Board *board) {
         board->squares[*movesIterator].piece = this;
 
         // see if king is in check now
-        auto newAttackedSquares = board->attackedSquaresOfColor(colour);
         const auto king = board->getKingByColor(colour);
-        const bool check = newAttackedSquares.contains(king->square->name);
+        const bool check = board->is_square_attacked(king->square->name, opposite(colour));
 
         // reset board position
         if (possibleMovableSquaresPiece != nullptr) possibleMovableSquaresPiece->captured = false;

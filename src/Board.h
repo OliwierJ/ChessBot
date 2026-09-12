@@ -13,16 +13,16 @@ class GameState;
 constexpr int SQUARE_SIZE = 75;
 
 static std::map<int, std::string> numToLetter = {
-    {1, "A"}, {2, "B"}, {3, "C"}, {4, "D"}, {5, "E"}, {6, "F"}, {7, "G"}, {8, "H"}
-};
+    {1, "A"}, {2, "B"}, {3, "C"}, {4, "D"}, {5, "E"}, {6, "F"}, {7, "G"}, {8, "H"}};
 
-class Board {
+class Board
+{
 public:
     std::map<std::string, BoardSquare> squares;
     std::unordered_set<std::string> possibleMoves;
     std::deque<Piece> pieceList;
-    Piece* whiteKing{};
-    Piece* blackKing{};
+    Piece *whiteKing{};
+    Piece *blackKing{};
     bool whiteIsChecked = false;
     bool blackIsChecked = false;
 
@@ -36,12 +36,14 @@ public:
     void clear_board();
 
     // Checks if the given move is on the board
-    bool isPossibleMove(const std::string& move) const;
+    bool isPossibleMove(const std::string &move) const;
 
     // calculates all legal moves for all pieces, followed by both kings
     void calculateAllLegalMoves();
 
     bool is_square_empty(const std::string &square);
+
+    bool is_square_attacked(const std::string &target, PieceColor attacking_colour) const;
 
     void calculateAllLegalMovesByColour(PieceColor colour);
 
@@ -64,7 +66,7 @@ public:
     [[nodiscard]]
     bool isColourChecked(PieceColor colour) const;
 
-    Piece* getKingByColor(PieceColor colour) const;
+    Piece *getKingByColor(PieceColor colour) const;
 
     size_t getLegalMoveCount(PieceColor colour) const;
 
@@ -73,7 +75,7 @@ public:
 
     void addBothKings();
 
-    bool square_contains_opponent_piece(const std::string& square, PieceColor colour) const;
+    bool square_contains_opponent_piece(const std::string &square, PieceColor colour) const;
 };
 
-#endif //CHESSBOT_BOARD_H
+#endif // CHESSBOT_BOARD_H

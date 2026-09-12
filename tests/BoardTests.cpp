@@ -92,6 +92,25 @@ TEST_CASE("A new board contains all starting pieces") {
     REQUIRE(board.blackKing->square->name == "E8");
 }
 
+TEST_CASE("Board detects attacks without using legal move state") {
+    constexpr Texture2D testTexture{600, 200};
+    Board board;
+    board.addPieceToBoard(PieceType::Pawn, PieceColor::White, "E4", testTexture);
+    board.addPieceToBoard(PieceType::Knight, PieceColor::Black, "C5", testTexture);
+    board.addPieceToBoard(PieceType::King, PieceColor::White, "H1", testTexture);
+    board.addPieceToBoard(PieceType::Rook, PieceColor::White, "H2", testTexture);
+    board.addPieceToBoard(PieceType::Rook, PieceColor::Black, "A8", testTexture);
+    board.addPieceToBoard(PieceType::Pawn, PieceColor::Black, "A5", testTexture);
+
+    REQUIRE(board.is_square_attacked("D5", PieceColor::White));
+    REQUIRE(board.is_square_attacked("E3", PieceColor::White));
+    REQUIRE(board.is_square_attacked("D7", PieceColor::Black));
+    REQUIRE(board.is_square_attacked("G2", PieceColor::White));
+    REQUIRE(board.is_square_attacked("H8", PieceColor::White));
+    REQUIRE_FALSE(board.is_square_attacked("A1", PieceColor::Black));
+    REQUIRE(board.is_square_attacked("B4", PieceColor::Black));
+}
+
 TEST_CASE("White pawn has one and two square opening moves") {
     Texture2D testTexture{600, 200};
     Board board;

@@ -1,4 +1,5 @@
 #include "Board.h"
+#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 
@@ -92,9 +93,81 @@ bool Board::is_square_empty(const std::string &square) {
     return squares[square].piece == nullptr;
 }
 
+bool Board::is_square_attacked(const std::string &target, const PieceColor attacking_colour) const {
+    if (!isPossibleMove(target)) return false;
+
+    const int targetFile = target[0] - 'A';
+    const int targetRank = target[1] - '1';
+    const auto absolute = [](const int value) { return value < 0 ? -value : value; };
+
+    for (const auto &piece: pieceList) {
+        if (piece.captured || piece.colour != attacking_colour) continue;
+
+        const int file = piece.square->name[0] - 'A';
+        const int rank = piece.square->name[1] - '1';
+        const int fileDistance = targetFile - file;
+        const int rankDistance = targetRank - rank;
+
+        if (piece.type == PieceType::Pawn) {
+            const int pawnDirection = attacking_colour == PieceColor::White ? 1 : -1;
+            if (absolute(fileDistance) == 1 && rankDistance == pawnDirection) return true;
+            continue;
+        }
+
+        if (piece.type == PieceType::Knight) {
+            if ((absolute(fileDistance) == 1 && absolute(rankDistance) == 2) ||
+                (absolute(fileDistance) == 2 && absolute(rankDistance) == 1)) {
+                return true;
+            }
+            continue;
+        }
+
+        if (piece.type == PieceType::King) {
+            if (absolute(fileDistance) <= 1 && absolute(rankDistance) <= 1 &&
+                (fileDistance != 0 || rankDistance != 0)) {
+                return true;
+            }
+            continue;
+        }
+
+        const bool sameFile = fileDistance == 0;
+        const bool sameRank = rankDistance == 0;
+        const bool diagonal = absolute(fileDistance) == absolute(rankDistance);
+        const bool movesInLine = piece.type == PieceType::Rook
+                                     ? sameFile || sameRank
+                                     : piece.type == PieceType::Bishop
+                                           ? diagonal
+                                           : sameFile || sameRank || diagonal;
+        if (!movesInLine || (fileDistance == 0 && rankDistance == 0)) continue;
+
+        const int fileStep = (fileDistance > 0) - (fileDistance < 0);
+        const int rankStep = (rankDistance > 0) - (rankDistance < 0);
+        int currentFile = file + fileStep;
+        int currentRank = rank + rankStep;
+        bool blocked = false;
+
+        while (currentFile != targetFile || currentRank != targetRank) {
+            const std::string square = {
+                static_cast<char>('A' + currentFile),
+                static_cast<char>('1' + currentRank)
+            };
+            if (squares.at(square).piece != nullptr) {
+                blocked = true;
+                break;
+            }
+            currentFile += fileStep;
+            currentRank += rankStep;
+        }
+
+        if (!blocked) return true;
+    }
+
+    return false;
+}
+
 void Board::calculateAllLegalMovesByColour(const PieceColor colour) {
     for (auto &p: pieceList) {
-        if (p.captured || p.colour != colour) continue;
+        if (p.captured || p.colour != colour || p.type == PieceType::King) continue;
         p.calculateLegalMoves(this);
         p.remove_moves_leading_to_checks(this);
     }
@@ -155,10 +228,10 @@ void Board::set_up_pieces(const Texture2D &piecesTexture) {
     }
 }
 
-uint64_t Board::generate_hash(const GameState& state) const {
+uint64_t Board::generate_hash(const GameState &state) const {
     uint64_t hash = 0;
 
-    for (const auto& p : pieceList) {
+    for (const auto &p: pieceList) {
         if (p.captured) continue;
 
         const int colour = static_cast<int>(p.colour);
@@ -169,13 +242,13 @@ uint64_t Board::generate_hash(const GameState& state) const {
     }
 
     if (whiteCanShortCastle) hash ^= Zobrist::castling_hash[0];
-    if (whiteCanLongCastle)  hash ^= Zobrist::castling_hash[1];
+    if (whiteCanLongCastle) hash ^= Zobrist::castling_hash[1];
     if (blackCanShortCastle) hash ^= Zobrist::castling_hash[2];
-    if (blackCanLongCastle)  hash ^= Zobrist::castling_hash[3];
+    if (blackCanLongCastle) hash ^= Zobrist::castling_hash[3];
 
     if (static_cast<int>(state.turn)) hash ^= Zobrist::side_to_move_hash;
 
-    for (const auto& square : enpassantSquares) {
+    for (const auto &square: enpassantSquares) {
         const int file = square[0] - 'A';
         hash ^= Zobrist::enpassant_file_hash[file];
     }
@@ -183,7 +256,7 @@ uint64_t Board::generate_hash(const GameState& state) const {
     return hash;
 }
 
-int Board::get_square_index(const std::string& square) {
+int Board::get_square_index(const std::string &square) {
     const int file = square[0] - 'A';
     const int rank = square[1] - '1';
     return rank * 8 + file;
