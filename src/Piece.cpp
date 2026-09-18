@@ -170,15 +170,15 @@ void Piece::printLegalMoves() const {
 void Piece::calculate_king_attacking_squares() {
     legalMoves.clear();
     attackingSquares.clear();
-    const std::string current = square->name;
-    const std::string topLeft = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] + 1)};
-    const std::string up = {current[0], static_cast<char>(current[1] + 1)};
-    const std::string topRight = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] + 1)};
-    const std::string right = {static_cast<char>(current[0] + 1), current[1]};
-    const std::string downRight = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] - 1)};
-    const std::string down = {current[0], static_cast<char>(current[1] - 1)};
-    const std::string downLeft = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] - 1)};
-    const std::string left = {static_cast<char>(current[0] - 1), current[1]};
+    const std::string current(square->name);
+    const std::string topLeft({static_cast<char>(current[0] - 1), static_cast<char>(current[1] + 1)});
+    const std::string up({current[0], static_cast<char>(current[1] + 1)});
+    const std::string topRight({static_cast<char>(current[0] + 1), static_cast<char>(current[1] + 1)});
+    const std::string right({static_cast<char>(current[0] + 1), current[1]});
+    const std::string downRight({static_cast<char>(current[0] + 1), static_cast<char>(current[1] - 1)});
+    const std::string down({current[0], static_cast<char>(current[1] - 1)});
+    const std::string downLeft({static_cast<char>(current[0] - 1), static_cast<char>(current[1] - 1)});
+    const std::string left({static_cast<char>(current[0] - 1), current[1]});
 
     const auto moves = {
         topLeft, up, topRight, right, downRight, down, downLeft, left
@@ -217,7 +217,7 @@ void Piece::calculateLegalMoves(Board *board) {
     if (type == PieceType::Pawn) {
         const int upOrDownMove = colour == PieceColor::White ? UP : DOWN;
 
-        std::string upOne = {static_cast<char>(current[0]), static_cast<char>(current[1] + upOrDownMove)};
+        std::string upOne({static_cast<char>(current[0]), static_cast<char>(current[1] + upOrDownMove)});
         std::string upTwo = {static_cast<char>(current[0]), static_cast<char>(upOne[1] + upOrDownMove)};
         std::string leftTake = {static_cast<char>(current[0] - 1), upOne[1]};
         std::string rightTake = {static_cast<char>(current[0] + 1), upOne[1]};
@@ -246,14 +246,14 @@ void Piece::calculateLegalMoves(Board *board) {
     }
 
     if (type == PieceType::Knight) {
-        std::string upTwoLeftOne = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] + 2)};
-        std::string upTwoRightOne = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] + 2)};
-        std::string upOneLeftTwo = {static_cast<char>(current[0] - 2), static_cast<char>(current[1] + 1)};
-        std::string upOneRightTwo = {static_cast<char>(current[0] + 2), static_cast<char>(current[1] + 1)};
-        std::string downOneLeftTwo = {static_cast<char>(current[0] - 2), static_cast<char>(current[1] - 1)};
-        std::string downOneRightTwo = {static_cast<char>(current[0] + 2), static_cast<char>(current[1] - 1)};
-        std::string downTwoLeftOne = {static_cast<char>(current[0] - 1), static_cast<char>(current[1] - 2)};
-        std::string downTwoRightOne = {static_cast<char>(current[0] + 1), static_cast<char>(current[1] - 2)};
+        std::string upTwoLeftOne({static_cast<char>(current[0] - 1), static_cast<char>(current[1] + 2)});
+        std::string upTwoRightOne({static_cast<char>(current[0] + 1), static_cast<char>(current[1] + 2)});
+        std::string upOneLeftTwo({static_cast<char>(current[0] - 2), static_cast<char>(current[1] + 1)});
+        std::string upOneRightTwo({static_cast<char>(current[0] + 2), static_cast<char>(current[1] + 1)});
+        std::string downOneLeftTwo({static_cast<char>(current[0] - 2), static_cast<char>(current[1] - 1)});
+        std::string downOneRightTwo({static_cast<char>(current[0] + 2), static_cast<char>(current[1] - 1)});
+        std::string downTwoLeftOne({static_cast<char>(current[0] - 1), static_cast<char>(current[1] - 2)});
+        std::string downTwoRightOne({static_cast<char>(current[0] + 1), static_cast<char>(current[1] - 2)});
 
         legalMoves = {
             upTwoLeftOne, upTwoRightOne, upOneLeftTwo, upOneRightTwo, downOneLeftTwo, downOneRightTwo, downTwoLeftOne,

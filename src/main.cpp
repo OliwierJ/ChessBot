@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <future>
 #include <iostream>
@@ -45,6 +46,8 @@ int main() {
     bool bot_thinking = false;
     std::future<std::optional<BotMove> > bot_task;
 	std::cout << MAX_DEPTH << std::endl;
+    std::chrono::time_point<std::chrono::system_clock> start_t = std::chrono::system_clock::now();
+
     while (!WindowShouldClose()) {
         const Vector2 mouse = GetMousePosition();
 
@@ -84,6 +87,7 @@ int main() {
             GameState state_snapshot = game.state();
 
             bot_thinking = true;
+            start_t = std::chrono::system_clock::now();
             bot_task = std::async(
                 std::launch::async,
                 &Bot::choose_move,
@@ -101,6 +105,9 @@ int main() {
                 bot_thinking = false;
                 continue;
             }
+            auto end_t = std::chrono::system_clock::now();
+            auto took = end_t - start_t;
+            std::cout << "Took: " << std::chrono::duration_cast<std::chrono::milliseconds>(took).count() << "ms\n";
             const auto& [from, target] = move.value();
             Piece *piece = game.board().squares.at(from).piece;
             BoardSquare &square = game.board().squares.at(target);

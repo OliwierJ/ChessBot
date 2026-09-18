@@ -162,10 +162,7 @@ void ChessGame::update_game_status(const MoveOutcome outcome) {
         gameState.state = GameStatus::Draw;
         return;
     }
-    std::cout << gameState.move_history.movesList.size() << "\n";
-    for (auto [t,s] : gameState.position_table) {
-        std::cout << t << " " << s << "\n";
-    }
+
     if (outcome.pieceTaken || outcome.pawnMoved) gameState.last_pawn_or_capture = gameState.turn_counter;
 
     if (outcome.shortCastled || outcome.longCastled) {
