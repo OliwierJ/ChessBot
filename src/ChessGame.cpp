@@ -75,10 +75,11 @@ void ChessGame::complete_move(const Piece &piece, const BoardSquare &target, con
                               const MoveOutcome outcome) {
     const std::string notation = create_notation(piece, target, previousPosition, outcome);
 
-    gameState.move_history.append_move(notation);
 
     // update turn counts and game end flags
     update_game_status(outcome);
+
+    gameState.move_history.append_move(notation);
 
     // swap turn colour
     if (gameState.state == GameStatus::Normal) {

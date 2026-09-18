@@ -103,7 +103,7 @@ TEST_CASE("Board detects attacks without using legal move state") {
     board.addPieceToBoard(PieceType::Pawn, PieceColor::Black, "A5", testTexture);
 
     REQUIRE(board.is_square_attacked("D5", PieceColor::White));
-    REQUIRE(board.is_square_attacked("E3", PieceColor::White));
+    REQUIRE_FALSE(board.is_square_attacked("E5", PieceColor::White));
     REQUIRE(board.is_square_attacked("D7", PieceColor::Black));
     REQUIRE(board.is_square_attacked("G2", PieceColor::White));
     REQUIRE(board.is_square_attacked("H8", PieceColor::White));
@@ -158,7 +158,7 @@ TEST_CASE("Cannot move piece into check") {
     board.calculateAllLegalMoves();
     board.calculateAllLegalMovesByColour(PieceColor::Black);
     board.calculateAllLegalMovesByColour(PieceColor::White);
-    Piece *rook = board.squares.at("E4").piece;
+    const Piece *rook = board.squares.at("E4").piece;
 
     REQUIRE(!rook->isLegalMove("D4"));
     REQUIRE(!rook->isLegalMove("C4"));
@@ -223,7 +223,7 @@ TEST_CASE("Rook cannot move through a piece") {
 
     REQUIRE(rook->isLegalMove("B1"));
     REQUIRE(rook->isLegalMove("C1"));
-    // REQUIRE_FALSE(rook->isLegalMove("D1"));
+    REQUIRE_FALSE(rook->isLegalMove("D1"));
     REQUIRE_FALSE(rook->isLegalMove("E1"));
 }
 
@@ -412,4 +412,24 @@ TEST_CASE("Black can take to avoid checkmate") {
     blackNoLegalMoves = board.getLegalMoveCount(PieceColor::Black) == 0;
     REQUIRE(!blackNoLegalMoves);
     REQUIRE(bishop->square->name == "A8");
+}
+
+TEST_CASE("Stalemate") {
+    Board board;
+
+    board.addPieceToBoard(PieceType::King, PieceColor::White, "A1", {});
+    board.whiteKing = &board.pieceList.back();
+
+    board.addPieceToBoard(PieceType::King, PieceColor::Black, "H8", {});
+    board.blackKing = &board.pieceList.back();
+
+    board.addPieceToBoard(PieceType::Queen, PieceColor::Black, "B8", {});
+    board.calculateAllLegalMoves();
+
+    Piece* queen = board.squares.at("B8").piece;
+    BoardSquare& target = board.squares.at("B3");
+
+    MoveOutcome result = MoveValidator::apply_move(*queen, board, target);
+
+
 }

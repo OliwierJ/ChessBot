@@ -44,7 +44,7 @@ int main() {
 
     bool bot_thinking = false;
     std::future<std::optional<BotMove> > bot_task;
-
+	std::cout << MAX_DEPTH << std::endl;
     while (!WindowShouldClose()) {
         const Vector2 mouse = GetMousePosition();
 
@@ -101,7 +101,7 @@ int main() {
                 bot_thinking = false;
                 continue;
             }
-            const auto [from, target] = move.value();
+            const auto& [from, target] = move.value();
             Piece *piece = game.board().squares.at(from).piece;
             BoardSquare &square = game.board().squares.at(target);
 

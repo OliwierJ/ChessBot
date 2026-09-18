@@ -56,15 +56,30 @@ endif ()
 
 add_executable(ChessBotTests
         tests/BoardTests.cpp
-        src/Board.cpp
-        src/BoardSquare.cpp
-        src/Piece.cpp
-        src/MoveValidator.cpp
-        src/ChessGame.cpp
-        src/MoveHistory.cpp
-        src/GameState.cpp
         tests/ChessGameTests.cpp
+        src/Piece.h
+        src/BoardSquare.cpp
+        src/BoardSquare.h
+        src/Board.cpp
+        src/Board.h
+        src/ChessGame.cpp
+        src/SoundManager.h
+        src/SoundManager.cpp
+        src/ChessGame.h
+        src/Piece.cpp
+        src/GameState.cpp
+        src/GameState.h
+        src/MoveHistory.cpp
+        src/MoveHistory.h
+        src/MoveValidator.cpp
+        src/MoveValidator.h
         src/Bot.cpp
+        src/Bot.h
+        "${EMBEDDED_RESOURCES_HEADER}"
+        src/Renderer.cpp
+        src/Renderer.h
+        src/Zobrist.cpp
+        src/Zobrist.h
 )
 
 
@@ -112,7 +127,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-        $<$<CONFIG:Debug>:CHESSBOT_MAX_DEPTH=2>
+        $<$<CONFIG:Debug>:CHESSBOT_MAX_DEPTH=4>
         $<$<CONFIG:Release>:CHESSBOT_MAX_DEPTH=5>
 )
 

@@ -8,7 +8,7 @@
 #include "MoveValidator.h"
 #include "Piece.h"
 
-std::unordered_set<std::string> central_squares = {"C4", "C5", "D4", "D5", "E4", "E5", "F4", "F5"};
+std::unordered_set<std::string> central_squares = {"D4", "D5", "E4", "E5"};
 std::unordered_map<size_t, TranspositionEntry> Bot::hashed_positions;
 
 constexpr int checkmate_score = 100000;
@@ -84,11 +84,6 @@ float Bot::calculate_position(const Board &board, const GameState &state) {
         // give points for moving unmoved pieces
         if (piece.hasMoved && piece.type != PieceType::King && piece.type != PieceType::Queen) {
             score += piece.colour == PieceColor::White ? 0.01 : -0.01;
-        }
-
-        // take away points for moving king
-        if (piece.hasMoved && piece.type == PieceType::King) {
-            score -= piece.colour == PieceColor::White ? 0.5 : -0.5;
         }
 
         score += piece.colour == PieceColor::White ? square_control : -square_control;
